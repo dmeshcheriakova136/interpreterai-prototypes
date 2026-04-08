@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>InterpretAI — AI Prep Chat</title>
+<title>InterpretAI — Conversational Onboarding</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -30,7 +30,7 @@
     display:flex; flex-direction:column; position:relative;
   }
 
-  /* ── Status bar ── */
+  /* Status bar */
   .status-bar {
     display:flex; justify-content:space-between; align-items:center;
     padding:14px 28px 0; height:54px; flex-shrink:0;
@@ -39,29 +39,15 @@
   .status-bar .icons { display:flex; gap:6px; align-items:center; }
   .status-bar .icons svg { width:18px; height:18px; }
 
-  /* ── Nav header ── */
-  .nav-header {
-    display:flex; align-items:center; padding:4px 16px 12px;
-    flex-shrink:0; border-bottom:1px solid var(--gray-100);
-  }
-  .nav-back { background:none; border:none; cursor:pointer; padding:4px; margin-right:8px; }
-  .nav-back svg { width:24px; height:24px; color:var(--gray-900); }
-  .nav-title-area { flex:1; }
-  .nav-title { font-size:20px; font-weight:600; color:var(--gray-900); }
-  .nav-subtitle { font-size:13px; color:var(--gray-500); display:flex; align-items:center; gap:4px; }
-  .nav-subtitle .dot { width:6px; height:6px; border-radius:50%; background:var(--green-500); }
-  .nav-action { background:none; border:none; cursor:pointer; padding:8px; }
-  .nav-action svg { width:22px; height:22px; color:var(--gray-500); }
-
-  /* ── Chat area ── */
+  /* Chat area */
   .chat-area {
     flex:1; overflow-y:auto; padding:16px;
-    display:flex; flex-direction:column; gap:12px;
+    display:flex; flex-direction:column; gap:8px;
     scroll-behavior:smooth;
   }
   .chat-area::-webkit-scrollbar { display:none; }
 
-  /* Bubbles */
+  /* Messages */
   .msg { max-width:85%; display:flex; flex-direction:column; gap:4px; }
   .msg.ai { align-self:flex-start; }
   .msg.user { align-self:flex-end; }
@@ -81,138 +67,89 @@
   .bubble {
     padding:12px 16px; font-size:15px; line-height:22px; color:var(--gray-900);
   }
-  .msg.ai .bubble {
-    background:var(--gray-50); border-radius:16px 16px 16px 4px;
-  }
-  .msg.user .bubble {
-    background:var(--blue-500); color:var(--white); border-radius:16px 16px 4px 16px;
-  }
-  .msg-time { font-size:11px; color:var(--gray-500); padding:0 40px; }
-  .msg.user .msg-time { text-align:right; }
+  .msg.ai .bubble { background:var(--gray-50); border-radius:16px 16px 16px 4px; }
+  .msg.user .bubble { background:var(--blue-500); color:var(--white); border-radius:16px 16px 4px 16px; }
+  .bubble strong { font-weight:600; }
 
-  /* ── AI structured response ── */
-  .ai-card {
-    background:var(--gray-50); border-radius:16px; overflow:hidden;
-    max-width:85%; align-self:flex-start;
+  /* Welcome hero */
+  .welcome-hero {
+    text-align:center; padding:40px 20px 20px;
   }
-  .ai-card-inner { padding:16px; }
-  .ai-card p { font-size:15px; line-height:22px; color:var(--gray-900); margin-bottom:12px; }
-  .ai-card p strong { font-weight:600; }
+  .welcome-logo {
+    width:72px; height:72px; border-radius:20px;
+    background:linear-gradient(135deg, var(--blue-500), var(--blue-600));
+    margin:0 auto 16px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 24px rgba(0,102,255,.25);
+  }
+  .welcome-logo svg { width:36px; height:36px; color:var(--white); }
+  .welcome-title { font-size:28px; font-weight:700; color:var(--gray-900); margin-bottom:6px; }
+  .welcome-sub { font-size:15px; color:var(--gray-500); line-height:22px; }
 
-  /* Term group */
-  .term-group { margin-bottom:16px; }
-  .term-group-header {
-    font-size:13px; font-weight:600; text-transform:uppercase;
-    letter-spacing:.5px; color:var(--blue-500); margin-bottom:8px;
-    display:flex; align-items:center; gap:6px;
+  /* Inline option chips for chat */
+  .chat-options {
+    display:flex; flex-wrap:wrap; gap:8px; max-width:85%;
+    align-self:flex-start; padding-left:40px;
   }
-  .term-group-header::before {
-    content:''; width:3px; height:14px; border-radius:2px; background:var(--blue-500);
+  .chat-option {
+    padding:10px 18px; border-radius:20px;
+    background:var(--white); border:1.5px solid var(--blue-500);
+    color:var(--blue-500); font-size:14px; font-weight:500;
+    cursor:pointer; transition:all .2s; font-family:inherit;
+  }
+  .chat-option:active { transform:scale(.96); }
+  .chat-option:hover { background:var(--blue-50); }
+  .chat-option.selected {
+    background:var(--blue-500); color:var(--white); border-color:var(--blue-500);
+    pointer-events:none;
+  }
+  .chat-option.disabled {
+    opacity:.4; pointer-events:none;
   }
 
-  .term-row {
-    display:flex; align-items:center; padding:10px 0;
-    border-bottom:1px solid var(--gray-100); gap:8px;
+  /* Inline language grid */
+  .lang-grid {
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;
+    max-width:85%; align-self:flex-start; padding-left:40px;
   }
-  .term-row:last-child { border-bottom:none; }
-
-  .term-texts { flex:1; min-width:0; }
-  .term-pair { display:flex; gap:6px; align-items:baseline; flex-wrap:wrap; }
-  .term-en { font-size:15px; font-weight:600; color:var(--gray-900); }
-  .term-arrow { font-size:13px; color:var(--gray-500); }
-  .term-es { font-size:15px; font-weight:500; color:var(--blue-500); }
-  .term-def { font-size:13px; color:var(--gray-500); margin-top:2px; line-height:17px; }
-
-  .term-add {
-    width:32px; height:32px; border-radius:50%; border:1.5px solid var(--gray-200);
-    background:var(--white); cursor:pointer; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    transition:all .2s ease;
+  .lang-option {
+    padding:12px 16px; border-radius:14px;
+    background:var(--white); border:1.5px solid var(--gray-200);
+    font-size:14px; font-weight:500; color:var(--gray-900);
+    cursor:pointer; transition:all .2s; font-family:inherit;
+    display:flex; align-items:center; gap:8px;
   }
-  .term-add svg { width:16px; height:16px; color:var(--blue-500); transition:all .2s; }
-  .term-add.saved {
-    background:var(--green-500); border-color:var(--green-500);
+  .lang-option:hover { border-color:var(--blue-500); background:var(--blue-50); }
+  .lang-option:active { transform:scale(.97); }
+  .lang-option .flag { font-size:20px; }
+  .lang-option.selected {
+    border-color:var(--blue-500); background:var(--blue-500); color:var(--white);
+    pointer-events:none;
   }
-  .term-add.saved svg { color:var(--white); }
+  .lang-option.disabled { opacity:.4; pointer-events:none; }
 
-  /* Save all button */
-  .save-all-btn {
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; padding:14px; border-radius:12px;
+  /* Detail text area inside chat */
+  .chat-textarea-wrap {
+    max-width:85%; align-self:flex-start; padding-left:40px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .chat-textarea {
+    width:100%; min-height:80px; border-radius:14px;
+    background:var(--gray-50); border:1.5px solid var(--gray-200);
+    padding:12px 16px; font-size:14px; font-family:inherit;
+    color:var(--gray-900); resize:none; outline:none; line-height:20px;
+  }
+  .chat-textarea:focus { border-color:var(--blue-500); }
+  .chat-textarea::placeholder { color:var(--gray-500); }
+  .chat-textarea-send {
+    align-self:flex-end; padding:10px 20px; border-radius:20px;
     background:var(--blue-500); color:var(--white);
-    font-size:15px; font-weight:600; border:none; cursor:pointer;
-    transition:background .2s, transform .15s;
-    margin-top:4px;
+    font-size:14px; font-weight:600; border:none; cursor:pointer;
+    font-family:inherit; transition:all .2s;
   }
-  .save-all-btn:active { transform:scale(.98); background:var(--blue-600); }
-  .save-all-btn.saved { background:var(--green-500); }
-  .save-all-btn svg { width:18px; height:18px; }
+  .chat-textarea-send:active { background:var(--blue-600); transform:scale(.97); }
 
-  /* ── Quiz card ── */
-  .quiz-card {
-    background:var(--white); border-radius:16px; overflow:hidden;
-    max-width:85%; align-self:flex-start;
-    border:1px solid var(--gray-100);
-  }
-  .quiz-header {
-    background:linear-gradient(135deg, var(--blue-50), var(--blue-100));
-    padding:16px; display:flex; align-items:center; gap:10px;
-  }
-  .quiz-header-icon {
-    width:36px; height:36px; border-radius:10px; background:var(--blue-500);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .quiz-header-icon svg { width:20px; height:20px; color:var(--white); }
-  .quiz-header-text { font-size:17px; font-weight:600; color:var(--gray-900); }
-  .quiz-header-sub { font-size:13px; color:var(--gray-500); }
-
-  .quiz-body { padding:16px; }
-  .quiz-q { margin-bottom:16px; }
-  .quiz-q:last-of-type { margin-bottom:12px; }
-  .quiz-q-label { font-size:13px; font-weight:600; color:var(--gray-500); text-transform:uppercase; letter-spacing:.3px; margin-bottom:8px; }
-  .quiz-q-text { font-size:15px; font-weight:500; color:var(--gray-900); margin-bottom:10px; line-height:20px; }
-
-  .quiz-option {
-    display:flex; align-items:center; gap:10px; padding:12px;
-    border-radius:12px; border:1.5px solid var(--gray-100);
-    margin-bottom:6px; cursor:pointer; transition:all .2s;
-    font-size:15px; color:var(--gray-900);
-  }
-  .quiz-option:hover { border-color:var(--blue-100); background:var(--blue-50); }
-  .quiz-option.correct { border-color:var(--green-500); background:var(--green-50); }
-  .quiz-option.wrong { border-color:var(--red-500); background:var(--red-100); }
-  .quiz-option .radio {
-    width:20px; height:20px; border-radius:50%; border:2px solid var(--gray-200);
-    flex-shrink:0; display:flex; align-items:center; justify-content:center;
-    transition:all .2s;
-  }
-  .quiz-option.correct .radio { border-color:var(--green-500); background:var(--green-500); }
-  .quiz-option.wrong .radio { border-color:var(--red-500); background:var(--red-500); }
-  .quiz-option.correct .radio::after,
-  .quiz-option.wrong .radio::after {
-    content:''; width:8px; height:8px; border-radius:50%; background:var(--white);
-  }
-
-  .quiz-result {
-    display:none; text-align:center; padding:16px 0 8px;
-  }
-  .quiz-result.show { display:block; }
-  .quiz-score { font-size:28px; font-weight:700; color:var(--blue-500); }
-  .quiz-score-label { font-size:15px; color:var(--gray-500); margin-top:2px; }
-
-  .quiz-study-btn {
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; padding:14px; border-radius:12px;
-    background:var(--blue-50); color:var(--blue-500);
-    font-size:15px; font-weight:600; border:none; cursor:pointer;
-    transition:all .2s; margin-top:12px;
-  }
-  .quiz-study-btn:active { background:var(--blue-100); }
-  .quiz-study-btn svg { width:18px; height:18px; }
-
-  /* ── Typing indicator ── */
-  .typing { display:flex; gap:8px; align-items:flex-end; align-self:flex-start; padding:0 0 0 0; }
-  .typing .msg-avatar { width:32px; height:32px; }
+  /* Typing indicator */
+  .typing { display:flex; gap:8px; align-items:flex-end; align-self:flex-start; }
   .typing-dots {
     background:var(--gray-50); border-radius:16px 16px 16px 4px;
     padding:14px 18px; display:flex; gap:5px;
@@ -225,44 +162,81 @@
   .typing-dots span:nth-child(3) { animation-delay:.4s; }
   @keyframes bounce { to { opacity:.3; transform:translateY(-4px); } }
 
-  .typing-indicator { display:none; }
-  .typing-indicator.show { display:flex; }
-
-  /* ── Input bar ── */
-  .input-bar {
-    flex-shrink:0; padding:8px 16px 28px;
-    display:flex; align-items:center; gap:8px;
-    border-top:1px solid var(--gray-100);
-    background:var(--white);
+  /* Term results card */
+  .term-card {
+    background:var(--gray-50); border-radius:16px; overflow:hidden;
+    max-width:85%; align-self:flex-start;
   }
-  .input-field {
-    flex:1; height:44px; border-radius:22px;
-    background:var(--gray-50); border:none; padding:0 16px;
-    font-size:15px; font-family:inherit; color:var(--gray-900);
-    outline:none;
+  .term-card-header {
+    background:linear-gradient(135deg, var(--blue-50), var(--blue-100));
+    padding:16px; display:flex; align-items:center; gap:10px;
   }
-  .input-field::placeholder { color:var(--gray-500); }
-  .input-field:focus { box-shadow:0 0 0 2px var(--blue-100); }
-
-  .input-btn {
-    width:44px; height:44px; border-radius:50%; border:none;
+  .term-card-icon {
+    width:40px; height:40px; border-radius:12px; background:var(--blue-500);
     display:flex; align-items:center; justify-content:center;
-    cursor:pointer; flex-shrink:0; transition:all .2s;
   }
-  .voice-btn { background:var(--gray-50); }
-  .voice-btn svg { width:20px; height:20px; color:var(--gray-500); }
-  .voice-btn.recording { background:var(--red-100); }
-  .voice-btn.recording svg { color:var(--red-500); }
+  .term-card-icon svg { width:20px; height:20px; color:var(--white); }
+  .term-card-title { font-size:17px; font-weight:600; color:var(--gray-900); }
+  .term-card-sub { font-size:13px; color:var(--gray-500); }
+  .term-card-body { padding:12px 16px; }
 
-  .send-btn { background:var(--blue-500); }
-  .send-btn:active { background:var(--blue-600); transform:scale(.95); }
-  .send-btn svg { width:20px; height:20px; color:var(--white); }
-  .send-btn:disabled { background:var(--gray-200); cursor:default; }
+  .term-row {
+    display:flex; align-items:center; padding:10px 0;
+    border-bottom:1px solid var(--gray-100); gap:8px;
+  }
+  .term-row:last-child { border-bottom:none; }
+  .term-num {
+    width:24px; height:24px; border-radius:50%;
+    background:var(--blue-50); color:var(--blue-500);
+    font-size:11px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .term-texts { flex:1; }
+  .term-en { font-size:14px; font-weight:600; color:var(--gray-900); }
+  .term-es { font-size:13px; color:var(--blue-500); font-weight:500; }
+  .term-add {
+    width:28px; height:28px; border-radius:50%; border:1.5px solid var(--gray-200);
+    background:var(--white); cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s;
+  }
+  .term-add svg { width:14px; height:14px; color:var(--blue-500); }
+  .term-add.saved { background:var(--green-500); border-color:var(--green-500); }
+  .term-add.saved svg { color:var(--white); }
 
-  /* ── Tab bar ── */
+  .save-all-bar {
+    padding:12px 16px; border-top:1px solid var(--gray-100);
+    display:flex; gap:8px;
+  }
+  .save-all-btn {
+    flex:1; padding:12px; border-radius:12px; border:none;
+    font-size:14px; font-weight:600; cursor:pointer;
+    font-family:inherit; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .save-all-btn:active { transform:scale(.98); }
+  .save-all-btn.primary { background:var(--blue-500); color:var(--white); }
+  .save-all-btn.primary:active { background:var(--blue-600); }
+  .save-all-btn.secondary { background:var(--gray-50); color:var(--gray-900); border:1px solid var(--gray-200); }
+  .save-all-btn.saved { background:var(--green-500); color:var(--white); }
+
+  /* Progress dots at top */
+  .progress-dots {
+    display:flex; justify-content:center; gap:6px;
+    padding:8px 0 4px; flex-shrink:0;
+  }
+  .pdot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--gray-200); transition:all .3s;
+  }
+  .pdot.active { background:var(--blue-500); width:24px; border-radius:4px; }
+  .pdot.done { background:var(--green-500); }
+
+  /* Tab bar */
   .tab-bar {
     display:flex; align-items:center; justify-content:space-around;
-    padding:8px 0 0; background:var(--white);
+    padding:8px 0 28px; background:var(--white);
     box-shadow:0 -1px 4px rgba(0,0,0,.06); flex-shrink:0;
   }
   .tab-item {
@@ -278,36 +252,10 @@
   .tab-item.active .tab-label { color:var(--blue-500); }
   .tab-item:not(.active) .tab-label { color:var(--gray-500); }
 
-  /* ── FAB: Add Term button ── */
-  .fab {
-    position:absolute; bottom:148px; right:24px; z-index:10;
-    width:56px; height:56px; border-radius:50%;
-    background:var(--blue-500); border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 12px rgba(0,102,255,.35);
-    transition:transform .2s, background .2s;
-  }
-  .fab:active { transform:scale(.92); background:var(--blue-600); }
-  .fab svg { width:24px; height:24px; color:var(--white); }
+  .fade-in { animation:fadeIn .4s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  .fab-tooltip {
-    position:absolute; bottom:160px; right:24px; z-index:10;
-    background:var(--gray-900); color:var(--white);
-    font-size:13px; font-weight:500; padding:6px 12px;
-    border-radius:8px; white-space:nowrap;
-    opacity:0; pointer-events:none; transition:opacity .2s;
-  }
-  .fab-tooltip::after {
-    content:''; position:absolute; bottom:-5px; right:20px;
-    border-left:6px solid transparent; border-right:6px solid transparent;
-    border-top:6px solid var(--gray-900);
-  }
-  .fab:hover + .fab-tooltip { opacity:1; }
-
-  /* ── Utilities ── */
   .hidden { display:none !important; }
-  .fade-in { animation:fadeIn .3s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 </style>
 </head>
 <body>
@@ -323,237 +271,27 @@
     </div>
   </div>
 
-  <!-- Nav header -->
-  <div class="nav-header">
-    <button class="nav-back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-    </button>
-    <div class="nav-title-area">
-      <div class="nav-title">AI Prep</div>
-      <div class="nav-subtitle"><span class="dot"></span> Ready to help</div>
-    </div>
-    <button class="nav-action">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-    </button>
+  <!-- Progress dots -->
+  <div class="progress-dots" id="progressDots">
+    <div class="pdot active" id="pdot0"></div>
+    <div class="pdot" id="pdot1"></div>
+    <div class="pdot" id="pdot2"></div>
+    <div class="pdot" id="pdot3"></div>
+    <div class="pdot" id="pdot4"></div>
   </div>
 
-  <!-- Chat -->
+  <!-- Chat area -->
   <div class="chat-area" id="chatArea">
 
-    <!-- Welcome message -->
-    <div class="msg ai fade-in">
-      <div class="msg-row">
-        <div class="msg-avatar">AI</div>
-        <div class="bubble">Tell me about your next interpreting assignment and I'll prepare a terminology set for you. Include: <strong>specialty, language pair, setting</strong>, and any details you know.</div>
+    <!-- Welcome hero -->
+    <div class="welcome-hero fade-in" id="welcomeHero">
+      <div class="welcome-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
       </div>
-      <div class="msg-time">10:00 AM</div>
+      <div class="welcome-title">InterpretAI</div>
+      <div class="welcome-sub">Let's set up your prep session.<br>I'll walk you through it — just a few quick questions.</div>
     </div>
 
-    <!-- User message (preloaded) -->
-    <div class="msg user fade-in">
-      <div class="msg-row">
-        <div class="msg-avatar">A</div>
-        <div class="bubble">I have an orthopedic follow-up appointment tomorrow. Spanish–English, medical setting at a hospital outpatient clinic. The patient had knee replacement surgery 6 weeks ago and this is their post-op check-up. They'll likely discuss recovery progress, physical therapy, and medication management.</div>
-      </div>
-      <div class="msg-time">10:01 AM</div>
-    </div>
-
-    <!-- AI response intro -->
-    <div class="msg ai fade-in">
-      <div class="msg-row">
-        <div class="msg-avatar">AI</div>
-        <div class="bubble">Here's your prep glossary for an <strong>orthopedic post-op follow-up</strong> (ES ↔ EN). I've organized 12 key terms by sub-topic. Tap <strong>+</strong> to save individual terms or use the button to save them all at once.</div>
-      </div>
-      <div class="msg-time">10:01 AM</div>
-    </div>
-
-    <!-- Terminology table card -->
-    <div class="ai-card fade-in">
-      <div class="ai-card-inner">
-
-        <!-- Group 1: Surgical Terms -->
-        <div class="term-group">
-          <div class="term-group-header">Surgical Terms</div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Knee replacement</span><span class="term-arrow">→</span><span class="term-es">Reemplazo de rodilla</span></div>
-              <div class="term-def">Total or partial prosthetic replacement of the knee joint</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Prosthesis</span><span class="term-arrow">→</span><span class="term-es">Prótesis</span></div>
-              <div class="term-def">Artificial device replacing a body part</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Incision</span><span class="term-arrow">→</span><span class="term-es">Incisión</span></div>
-              <div class="term-def">Surgical cut made in skin or tissue</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Sutures / Stitches</span><span class="term-arrow">→</span><span class="term-es">Suturas / Puntos</span></div>
-              <div class="term-def">Thread used to close a wound after surgery</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-        </div>
-
-        <!-- Group 2: Post-Op Recovery -->
-        <div class="term-group">
-          <div class="term-group-header">Post-Op Recovery</div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Range of motion</span><span class="term-arrow">→</span><span class="term-es">Rango de movimiento</span></div>
-              <div class="term-def">The full movement potential of a joint</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Physical therapy</span><span class="term-arrow">→</span><span class="term-es">Fisioterapia</span></div>
-              <div class="term-def">Exercises and treatment to restore movement and strength</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Swelling</span><span class="term-arrow">→</span><span class="term-es">Hinchazón</span></div>
-              <div class="term-def">Abnormal enlargement of a body area due to fluid buildup</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Weight-bearing</span><span class="term-arrow">→</span><span class="term-es">Soporte de peso</span></div>
-              <div class="term-def">Ability to stand or walk putting weight on the joint</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-        </div>
-
-        <!-- Group 3: Patient Instructions -->
-        <div class="term-group">
-          <div class="term-group-header">Patient Instructions</div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Blood thinner</span><span class="term-arrow">→</span><span class="term-es">Anticoagulante</span></div>
-              <div class="term-def">Medication to prevent blood clots after surgery</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Follow-up appointment</span><span class="term-arrow">→</span><span class="term-es">Cita de seguimiento</span></div>
-              <div class="term-def">Scheduled visit to check recovery progress</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Inflammation</span><span class="term-arrow">→</span><span class="term-es">Inflamación</span></div>
-              <div class="term-def">Body's response causing redness, heat, and swelling</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-          <div class="term-row">
-            <div class="term-texts">
-              <div class="term-pair"><span class="term-en">Ice and elevate</span><span class="term-arrow">→</span><span class="term-es">Aplicar hielo y elevar</span></div>
-              <div class="term-def">Common post-op instruction to reduce swelling</div>
-            </div>
-            <button class="term-add" onclick="toggleTerm(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-          </div>
-        </div>
-
-        <!-- Save All button -->
-        <button class="save-all-btn" id="saveAllBtn" onclick="saveAll()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <span>Save All to My Glossary</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Quiz card -->
-    <div class="quiz-card fade-in" style="margin-top:4px;">
-      <div class="quiz-header">
-        <div class="quiz-header-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div>
-          <div class="quiz-header-text">Quick Knowledge Check</div>
-          <div class="quiz-header-sub">3 questions on your glossary</div>
-        </div>
-      </div>
-      <div class="quiz-body">
-
-        <!-- Q1 -->
-        <div class="quiz-q" id="q1">
-          <div class="quiz-q-label">Question 1 of 3</div>
-          <div class="quiz-q-text">What is the Spanish term for "knee replacement"?</div>
-          <div class="quiz-option" onclick="answer(this,'q1',false)"><span class="radio"></span>Cirugía de tobillo</div>
-          <div class="quiz-option" onclick="answer(this,'q1',true)" data-correct><span class="radio"></span>Reemplazo de rodilla</div>
-          <div class="quiz-option" onclick="answer(this,'q1',false)"><span class="radio"></span>Fractura de cadera</div>
-        </div>
-
-        <!-- Q2 -->
-        <div class="quiz-q" id="q2">
-          <div class="quiz-q-label">Question 2 of 3</div>
-          <div class="quiz-q-text">"Fisioterapia" translates to which English term?</div>
-          <div class="quiz-option" onclick="answer(this,'q2',false)"><span class="radio"></span>Medication therapy</div>
-          <div class="quiz-option" onclick="answer(this,'q2',false)"><span class="radio"></span>Occupational therapy</div>
-          <div class="quiz-option" onclick="answer(this,'q2',true)" data-correct><span class="radio"></span>Physical therapy</div>
-        </div>
-
-        <!-- Q3 -->
-        <div class="quiz-q" id="q3">
-          <div class="quiz-q-label">Question 3 of 3</div>
-          <div class="quiz-q-text">What does "anticoagulante" refer to?</div>
-          <div class="quiz-option" onclick="answer(this,'q3',true)" data-correct><span class="radio"></span>Blood thinner</div>
-          <div class="quiz-option" onclick="answer(this,'q3',false)"><span class="radio"></span>Pain reliever</div>
-          <div class="quiz-option" onclick="answer(this,'q3',false)"><span class="radio"></span>Anti-inflammatory</div>
-        </div>
-
-        <!-- Result -->
-        <div class="quiz-result" id="quizResult">
-          <div class="quiz-score" id="quizScore">0/3</div>
-          <div class="quiz-score-label">Correct answers</div>
-        </div>
-
-        <button class="quiz-study-btn" onclick="alert('Navigating to Study tab...')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-          <span>Want more practice? Go to Study</span>
-        </button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- FAB: Add Term -->
-  <button class="fab" id="fabBtn" onclick="openAddTerm()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-  <div class="fab-tooltip">Add Term</div>
-
-  <!-- Typing indicator -->
-  <div class="typing typing-indicator" id="typingIndicator">
-    <div class="msg-avatar" style="background:var(--blue-100);color:var(--blue-500);font-size:14px;font-weight:600;">AI</div>
-    <div class="typing-dots"><span></span><span></span><span></span></div>
-  </div>
-
-  <!-- Input bar -->
-  <div class="input-bar">
-    <button class="input-btn voice-btn" id="voiceBtn" onclick="toggleVoice()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="1" width="6" height="11" rx="3"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-    </button>
-    <input class="input-field" id="inputField" type="text" placeholder="Describe your assignment..." onkeydown="if(event.key==='Enter')sendMessage()">
-    <button class="input-btn send-btn" id="sendBtn" onclick="sendMessage()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
   </div>
 
   <!-- Tab bar -->
@@ -578,7 +316,317 @@
 </div>
 
 <script>
-/* ── Term saving ── */
+const chat = document.getElementById('chatArea');
+let step = 0;
+let selections = { lang: '', field: '', setting: '', details: '' };
+
+const sampleTerms = {
+  Medical: [
+    ['Knee replacement','Reemplazo de rodilla'],['Prosthesis','Prótesis'],
+    ['Range of motion','Rango de movimiento'],['Physical therapy','Fisioterapia'],
+    ['Blood thinner','Anticoagulante'],['Incision','Incisión'],
+    ['Swelling','Hinchazón'],['Follow-up','Cita de seguimiento'],
+    ['Inflammation','Inflamación'],['Sutures','Suturas']
+  ],
+  Legal: [
+    ['Plaintiff','Demandante'],['Defendant','Demandado'],
+    ['Testimony','Testimonio'],['Evidence','Evidencia'],
+    ['Verdict','Veredicto'],['Bail','Fianza'],
+    ['Custody','Custodia'],['Sentence','Sentencia'],
+    ['Appeal','Apelación'],['Subpoena','Citación']
+  ],
+  Education: [
+    ['IEP','Plan educativo individualizado'],['Accommodation','Adaptación'],
+    ['Assessment','Evaluación'],['Grade level','Nivel de grado'],
+    ['Special education','Educación especial'],['Disability','Discapacidad'],
+    ['Progress report','Informe de progreso'],['Enrollment','Inscripción'],
+    ['Attendance','Asistencia'],['Transcript','Expediente académico']
+  ],
+  'Community Services': [
+    ['Benefits','Beneficios'],['Eligibility','Elegibilidad'],
+    ['Case worker','Trabajador social'],['Housing assistance','Asistencia de vivienda'],
+    ['Application','Solicitud'],['Income verification','Verificación de ingresos'],
+    ['Dependent','Dependiente'],['Referral','Referencia'],
+    ['Shelter','Refugio'],['Counseling','Consejería']
+  ],
+  Business: [
+    ['Revenue','Ingresos'],['Stakeholder','Parte interesada'],
+    ['Merger','Fusión'],['Budget','Presupuesto'],
+    ['Invoice','Factura'],['Contract','Contrato'],
+    ['Deadline','Fecha límite'],['Compliance','Cumplimiento'],
+    ['Negotiation','Negociación'],['Strategy','Estrategia']
+  ]
+};
+
+// Start the conversation after a brief pause
+setTimeout(() => startConversation(), 800);
+
+function startConversation() {
+  addAIMessage("Hi there! 👋 I'm your AI prep assistant. Let's get you ready for your next interpreting assignment.");
+  setTimeout(() => {
+    addAIMessage("First — <strong>what's your language pair?</strong>");
+    setTimeout(() => showLanguageOptions(), 400);
+  }, 1000);
+}
+
+function addAIMessage(text) {
+  const div = document.createElement('div');
+  div.className = 'msg ai fade-in';
+  div.innerHTML = `
+    <div class="msg-row">
+      <div class="msg-avatar">AI</div>
+      <div class="bubble">${text}</div>
+    </div>
+  `;
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function addUserMessage(text) {
+  const div = document.createElement('div');
+  div.className = 'msg user fade-in';
+  div.innerHTML = `
+    <div class="msg-row">
+      <div class="msg-avatar">U</div>
+      <div class="bubble">${text}</div>
+    </div>
+  `;
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.className = 'typing fade-in';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="msg-avatar" style="background:var(--blue-100);color:var(--blue-500);font-size:14px;font-weight:600;">AI</div>
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+  `;
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function scrollDown() {
+  setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 50);
+}
+
+function updateProgress(stepNum) {
+  for (let i = 0; i < 5; i++) {
+    const dot = document.getElementById('pdot' + i);
+    dot.className = 'pdot';
+    if (i < stepNum) dot.classList.add('done');
+    else if (i === stepNum) dot.classList.add('active');
+  }
+}
+
+// STEP 1: Language pair
+function showLanguageOptions() {
+  updateProgress(0);
+  const div = document.createElement('div');
+  div.className = 'lang-grid fade-in';
+  div.id = 'langOptions';
+  const langs = [
+    ['🇪🇸','Spanish ↔ English'],
+    ['🇦🇷','Arabic ↔ English'],
+    ['🇺🇦','Ukrainian ↔ English'],
+    ['🇹🇷','Turkish ↔ English'],
+    ['🇫🇷','French ↔ English'],
+    ['🇨🇳','Mandarin ↔ English'],
+    ['🇵🇰','Urdu ↔ English'],
+    ['🇦🇫','Pashto ↔ English']
+  ];
+  div.innerHTML = langs.map(([flag, name]) =>
+    `<button class="lang-option" onclick="selectLang(this, '${name}')">
+      <span class="flag">${flag}</span>${name}
+    </button>`
+  ).join('');
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function selectLang(el, lang) {
+  selections.lang = lang;
+  el.classList.add('selected');
+  el.parentElement.querySelectorAll('.lang-option').forEach(o => {
+    if (o !== el) o.classList.add('disabled');
+  });
+
+  setTimeout(() => {
+    addUserMessage(lang);
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      updateProgress(1);
+      addAIMessage(`Great, <strong>${lang}</strong>! Now — <strong>what field is your assignment in?</strong>`);
+      setTimeout(() => showFieldOptions(), 400);
+    }, 1000);
+  }, 300);
+}
+
+// STEP 2: Field
+function showFieldOptions() {
+  const div = document.createElement('div');
+  div.className = 'chat-options fade-in';
+  div.id = 'fieldOptions';
+  const fields = ['Medical', 'Legal', 'Education', 'Business', 'Community Services'];
+  div.innerHTML = fields.map(f =>
+    `<button class="chat-option" onclick="selectField(this, '${f}')">${f}</button>`
+  ).join('');
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function selectField(el, field) {
+  selections.field = field;
+  el.classList.add('selected');
+  el.parentElement.querySelectorAll('.chat-option').forEach(o => {
+    if (o !== el) o.classList.add('disabled');
+  });
+
+  setTimeout(() => {
+    addUserMessage(field);
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      updateProgress(2);
+      addAIMessage(`Got it — <strong>${field}</strong>. <strong>What's the specific setting?</strong> For example: hospital clinic, courtroom, school meeting...`);
+      setTimeout(() => showSettingOptions(field), 400);
+    }, 1000);
+  }, 300);
+}
+
+// STEP 3: Setting
+function showSettingOptions(field) {
+  const settings = {
+    Medical: ['Hospital clinic', 'Emergency room', 'Pharmacy', 'Specialist office', 'Telehealth visit'],
+    Legal: ['Courtroom', 'Deposition', 'Immigration hearing', 'Attorney meeting', 'Police station'],
+    Education: ['IEP meeting', 'Parent-teacher conference', 'Enrollment office', 'School counselor', 'Classroom'],
+    Business: ['Board meeting', 'Negotiation', 'Conference', 'Client call', 'HR meeting'],
+    'Community Services': ['Social services office', 'Housing authority', 'Food bank', 'Shelter intake', 'Benefits office']
+  };
+
+  const div = document.createElement('div');
+  div.className = 'chat-options fade-in';
+  div.id = 'settingOptions';
+  div.innerHTML = (settings[field] || settings.Medical).map(s =>
+    `<button class="chat-option" onclick="selectSetting(this, '${s}')">${s}</button>`
+  ).join('');
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function selectSetting(el, setting) {
+  selections.setting = setting;
+  el.classList.add('selected');
+  el.parentElement.querySelectorAll('.chat-option').forEach(o => {
+    if (o !== el) o.classList.add('disabled');
+  });
+
+  setTimeout(() => {
+    addUserMessage(setting);
+    showTyping();
+    setTimeout(() => {
+      hideTyping();
+      updateProgress(3);
+      addAIMessage("Almost there! <strong>Any extra details?</strong> The more context, the better your glossary. Or just tap <strong>Skip</strong> to generate now.");
+      setTimeout(() => showDetailsInput(), 400);
+    }, 1000);
+  }, 300);
+}
+
+// STEP 4: Details (optional)
+function showDetailsInput() {
+  const div = document.createElement('div');
+  div.className = 'chat-textarea-wrap fade-in';
+  div.id = 'detailsWrap';
+  div.innerHTML = `
+    <textarea class="chat-textarea" id="detailsText" placeholder="e.g., Patient had knee replacement 6 weeks ago, post-op check-up, will discuss recovery and medications..."></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="chat-textarea-send" style="background:var(--gray-50);color:var(--gray-900);border:1px solid var(--gray-200);" onclick="skipDetails()">Skip</button>
+      <button class="chat-textarea-send" onclick="submitDetails()">Send</button>
+    </div>
+  `;
+  chat.appendChild(div);
+  scrollDown();
+}
+
+function skipDetails() {
+  document.getElementById('detailsWrap').classList.add('hidden');
+  addUserMessage("No extra details — generate it!");
+  generateGlossary();
+}
+
+function submitDetails() {
+  const text = document.getElementById('detailsText').value.trim();
+  document.getElementById('detailsWrap').classList.add('hidden');
+  if (text) {
+    selections.details = text;
+    addUserMessage(text);
+  } else {
+    addUserMessage("No extra details — generate it!");
+  }
+  generateGlossary();
+}
+
+// STEP 5: Generate glossary
+function generateGlossary() {
+  updateProgress(4);
+  showTyping();
+
+  setTimeout(() => {
+    hideTyping();
+    addAIMessage(`Here's your personalized <strong>${selections.field}</strong> glossary for <strong>${selections.lang}</strong> at a <strong>${selections.setting}</strong>:`);
+
+    setTimeout(() => {
+      const terms = sampleTerms[selections.field] || sampleTerms.Medical;
+      const termCard = document.createElement('div');
+      termCard.className = 'term-card fade-in';
+      termCard.innerHTML = `
+        <div class="term-card-header">
+          <div class="term-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          </div>
+          <div>
+            <div class="term-card-title">${selections.field} — ${selections.setting}</div>
+            <div class="term-card-sub">${terms.length} terms · ${selections.lang}</div>
+          </div>
+        </div>
+        <div class="term-card-body">
+          ${terms.map((t, i) => `
+            <div class="term-row">
+              <div class="term-num">${i + 1}</div>
+              <div class="term-texts">
+                <div class="term-en">${t[0]}</div>
+                <div class="term-es">${t[1]}</div>
+              </div>
+              <button class="term-add" onclick="toggleTerm(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+        <div class="save-all-bar">
+          <button class="save-all-btn secondary" onclick="startOver()">Start Over</button>
+          <button class="save-all-btn primary" id="saveAllBtn" onclick="saveAllTerms()">Save All to Glossary</button>
+        </div>
+      `;
+      chat.appendChild(termCard);
+      scrollDown();
+
+      setTimeout(() => {
+        addAIMessage("Tap <strong>+</strong> to save individual terms, or <strong>Save All</strong> to add everything to your glossary. Want to study them right away?");
+        scrollDown();
+      }, 600);
+    }, 500);
+  }, 2000);
+}
+
 function toggleTerm(btn) {
   if (btn.classList.contains('saved')) {
     btn.classList.remove('saved');
@@ -589,130 +637,33 @@ function toggleTerm(btn) {
   }
 }
 
-function saveAll() {
+function saveAllTerms() {
   const btn = document.getElementById('saveAllBtn');
-  const terms = document.querySelectorAll('.term-add');
-  terms.forEach(t => {
+  document.querySelectorAll('.term-add').forEach(t => {
     if (!t.classList.contains('saved')) toggleTerm(t);
   });
+  btn.classList.remove('primary');
   btn.classList.add('saved');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Saved to Glossary!</span>';
+  btn.innerHTML = '✓ Saved to Glossary!';
+  btn.onclick = null;
 }
 
-/* ── Quiz ── */
-let score = 0;
-let answered = 0;
-const totalQ = 3;
-
-function answer(el, qId, correct) {
-  const q = document.getElementById(qId);
-  if (q.classList.contains('answered')) return;
-  q.classList.add('answered');
-  answered++;
-
-  if (correct) {
-    el.classList.add('correct');
-    score++;
-  } else {
-    el.classList.add('wrong');
-    q.querySelector('[data-correct]').classList.add('correct');
-  }
-
-  q.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none');
-
-  if (answered === totalQ) {
-    const result = document.getElementById('quizResult');
-    document.getElementById('quizScore').textContent = score + '/' + totalQ;
-    result.classList.add('show');
-    document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
-  }
-}
-
-/* ── Send message ── */
-function sendMessage() {
-  const input = document.getElementById('inputField');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-
-  const chat = document.getElementById('chatArea');
-
-  // Add user bubble
-  const userMsg = document.createElement('div');
-  userMsg.className = 'msg user fade-in';
-  userMsg.innerHTML = `
-    <div class="msg-row">
-      <div class="msg-avatar">A</div>
-      <div class="bubble">${escapeHtml(text)}</div>
-    </div>
-    <div class="msg-time">${getCurrentTime()}</div>
-  `;
-  chat.appendChild(userMsg);
-  chat.scrollTop = chat.scrollHeight;
-
-  // Show typing indicator
-  const typing = document.getElementById('typingIndicator');
-  typing.classList.add('show');
-  chat.scrollTop = chat.scrollHeight;
-
-  // Simulate AI response
-  setTimeout(() => {
-    typing.classList.remove('show');
-    const aiMsg = document.createElement('div');
-    aiMsg.className = 'msg ai fade-in';
-    aiMsg.innerHTML = `
-      <div class="msg-row">
-        <div class="msg-avatar">AI</div>
-        <div class="bubble">I'd be happy to help you prepare for that assignment! Let me generate a terminology glossary based on your description. Could you also share the <strong>language pair</strong> and <strong>specific setting</strong> (courtroom, hospital, school, etc.)?</div>
+function startOver() {
+  // Reset everything
+  chat.innerHTML = `
+    <div class="welcome-hero fade-in" id="welcomeHero">
+      <div class="welcome-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
       </div>
-      <div class="msg-time">${getCurrentTime()}</div>
-    `;
-    chat.appendChild(aiMsg);
-    chat.scrollTop = chat.scrollHeight;
-  }, 1500);
+      <div class="welcome-title">InterpretAI</div>
+      <div class="welcome-sub">Let's set up your prep session.<br>I'll walk you through it — just a few quick questions.</div>
+    </div>
+  `;
+  step = 0;
+  selections = { lang: '', field: '', setting: '', details: '' };
+  updateProgress(0);
+  setTimeout(() => startConversation(), 800);
 }
-
-/* ── Voice toggle ── */
-function toggleVoice() {
-  const btn = document.getElementById('voiceBtn');
-  btn.classList.toggle('recording');
-  if (btn.classList.contains('recording')) {
-    document.getElementById('inputField').placeholder = 'Listening...';
-    setTimeout(() => {
-      btn.classList.remove('recording');
-      document.getElementById('inputField').value = 'I have a legal deposition next week, Spanish to English.';
-      document.getElementById('inputField').placeholder = 'Describe your assignment...';
-    }, 2000);
-  }
-}
-
-/* ── FAB: Add Term ── */
-function openAddTerm() {
-  const input = document.getElementById('inputField');
-  input.value = '';
-  input.placeholder = 'Type a term to add to your glossary...';
-  input.focus();
-}
-
-/* ── Helpers ── */
-function getCurrentTime() {
-  const d = new Date();
-  let h = d.getHours(), m = d.getMinutes(), ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-// Scroll to bottom on load
-window.onload = () => {
-  const chat = document.getElementById('chatArea');
-  chat.scrollTop = chat.scrollHeight;
-};
 </script>
 </body>
 </html>
