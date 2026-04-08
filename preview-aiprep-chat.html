@@ -576,53 +576,58 @@ function submitDetails() {
   generateGlossary();
 }
 
+function buildTermRows(terms) {
+  var html = '';
+  for (var i = 0; i < terms.length; i++) {
+    html += '<div class="term-row">' +
+      '<div class="term-num">' + (i + 1) + '</div>' +
+      '<div class="term-texts">' +
+        '<div class="term-en">' + terms[i][0] + '</div>' +
+        '<div class="term-es">' + terms[i][1] + '</div>' +
+      '</div>' +
+      '<button class="term-add" onclick="toggleTerm(this)">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      '</button>' +
+    '</div>';
+  }
+  return html;
+}
+
 // STEP 5: Generate glossary
 function generateGlossary() {
   updateProgress(4);
   showTyping();
 
-  setTimeout(() => {
+  setTimeout(function() {
     hideTyping();
-    addAIMessage(`Here's your personalized <strong>${selections.field}</strong> glossary for <strong>${selections.lang}</strong> at a <strong>${selections.setting}</strong>:`);
+    addAIMessage('Here\'s your personalized <strong>' + selections.field + '</strong> glossary for <strong>' + selections.lang + '</strong> at a <strong>' + selections.setting + '</strong>:');
 
-    setTimeout(() => {
-      const terms = sampleTerms[selections.field] || sampleTerms.Medical;
-      const termCard = document.createElement('div');
+    setTimeout(function() {
+      var terms = sampleTerms[selections.field] || sampleTerms.Medical;
+      var termCard = document.createElement('div');
       termCard.className = 'term-card fade-in';
-      termCard.innerHTML = `
-        <div class="term-card-header">
-          <div class="term-card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-          </div>
-          <div>
-            <div class="term-card-title">${selections.field} — ${selections.setting}</div>
-            <div class="term-card-sub">${terms.length} terms · ${selections.lang}</div>
-          </div>
-        </div>
-        <div class="term-card-body">
-          ${terms.map((t, i) => `
-            <div class="term-row">
-              <div class="term-num">${i + 1}</div>
-              <div class="term-texts">
-                <div class="term-en">${t[0]}</div>
-                <div class="term-es">${t[1]}</div>
-              </div>
-              <button class="term-add" onclick="toggleTerm(this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              </button>
-            </div>
-          `).join('')}
-        </div>
-        <div class="save-all-bar">
-          <button class="save-all-btn secondary" onclick="startOver()">Start Over</button>
-          <button class="save-all-btn primary" id="saveAllBtn" onclick="saveAllTerms()">Save All to Glossary</button>
-        </div>
-      `;
+      termCard.innerHTML =
+        '<div class="term-card-header">' +
+          '<div class="term-card-icon">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>' +
+          '</div>' +
+          '<div>' +
+            '<div class="term-card-title">' + selections.field + ' — ' + selections.setting + '</div>' +
+            '<div class="term-card-sub">' + terms.length + ' terms · ' + selections.lang + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="term-card-body">' +
+          buildTermRows(terms) +
+        '</div>' +
+        '<div class="save-all-bar">' +
+          '<button class="save-all-btn secondary" onclick="startOver()">Start Over</button>' +
+          '<button class="save-all-btn primary" id="saveAllBtn" onclick="saveAllTerms()">Save All to Glossary</button>' +
+        '</div>';
       chat.appendChild(termCard);
       scrollDown();
 
-      setTimeout(() => {
-        addAIMessage("Tap <strong>+</strong> to save individual terms, or <strong>Save All</strong> to add everything to your glossary. Want to study them right away?");
+      setTimeout(function() {
+        addAIMessage('Tap <strong>+</strong> to save individual terms, or <strong>Save All</strong> to add everything to your glossary. Want to study them right away?');
         scrollDown();
       }, 600);
     }, 500);
