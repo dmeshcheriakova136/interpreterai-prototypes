@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>InterpretAI — Guided Wizard Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root {
+    --blue-500:#0066FF; --blue-600:#0052CC; --blue-100:#DEEAFF; --blue-50:#EEF4FF;
+    --white:#FFFFFF; --gray-50:#F7F7F8; --gray-100:#EFEFEF; --gray-200:#D9D9D9;
+    --gray-500:#8E8E93; --gray-900:#1A1A1A;
+    --red-500:#E53935; --red-100:#FFEBEE;
+    --green-500:#34C759; --green-50:#E8F8ED;
+    --gold-500:#F0AD4E; --gold-50:#FFF8E7;
+  }
+
+  body {
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+    background:#f0f0f0;
+    display:flex; justify-content:center; align-items:center; min-height:100vh;
+  }
+
+  .phone {
+    width:390px; height:844px; background:var(--white);
+    border-radius:40px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.15);
+    display:flex; flex-direction:column; position:relative;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0; height:54px; flex-shrink:0;
+  }
+  .status-bar .time { font-size:16px; font-weight:600; color:var(--gray-900); }
+  .status-bar .icons { display:flex; gap:6px; align-items:center; }
+  .status-bar .icons svg { width:18px; height:18px; }
+
+  /* Nav */
+  .nav {
+    display:flex; align-items:center; padding:4px 16px 12px;
+    flex-shrink:0;
+  }
+  .nav-back {
+    background:none; border:none; cursor:pointer; padding:4px;
+    margin-right:8px; display:flex; align-items:center;
+  }
+  .nav-back svg { width:24px; height:24px; color:var(--gray-900); }
+  .nav-back span { font-size:15px; color:var(--blue-500); font-weight:500; margin-left:2px; }
+  .nav-skip {
+    margin-left:auto; background:none; border:none;
+    font-size:15px; color:var(--gray-500); font-weight:500;
+    cursor:pointer; padding:4px;
+  }
+
+  /* Progress bar */
+  .progress-bar-container {
+    padding:0 16px 20px; flex-shrink:0;
+  }
+  .progress-track {
+    height:4px; background:var(--gray-100); border-radius:2px;
+    overflow:hidden; position:relative;
+  }
+  .progress-fill {
+    height:100%; background:var(--blue-500); border-radius:2px;
+    transition:width .5s ease;
+  }
+  .progress-steps {
+    display:flex; justify-content:space-between; margin-top:10px;
+  }
+  .progress-step {
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    flex:1;
+  }
+  .step-dot {
+    width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:600; transition:all .3s;
+  }
+  .step-dot.inactive { background:var(--gray-100); color:var(--gray-500); }
+  .step-dot.active { background:var(--blue-500); color:var(--white); box-shadow:0 2px 8px rgba(0,102,255,.3); }
+  .step-dot.done { background:var(--green-500); color:var(--white); }
+  .step-label { font-size:11px; color:var(--gray-500); font-weight:500; text-align:center; }
+  .step-label.active { color:var(--blue-500); font-weight:600; }
+  .step-label.done { color:var(--green-500); }
+
+  /* Step content area */
+  .step-content {
+    flex:1; overflow-y:auto; padding:0 16px;
+    display:flex; flex-direction:column;
+  }
+  .step-content::-webkit-scrollbar { display:none; }
+
+  .step-screen { display:none; flex-direction:column; flex:1; }
+  .step-screen.active { display:flex; }
+
+  .step-title { font-size:28px; font-weight:700; color:var(--gray-900); line-height:34px; margin-bottom:8px; }
+  .step-desc { font-size:15px; color:var(--gray-500); line-height:22px; margin-bottom:24px; }
+
+  /* Option cards */
+  .option-grid { display:flex; flex-direction:column; gap:10px; }
+  .option-card {
+    display:flex; align-items:center; gap:14px;
+    padding:16px; border-radius:16px;
+    border:2px solid var(--gray-100);
+    cursor:pointer; transition:all .2s;
+    background:var(--white);
+  }
+  .option-card:active { transform:scale(.98); }
+  .option-card.selected { border-color:var(--blue-500); background:var(--blue-50); }
+  .option-icon {
+    width:48px; height:48px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:background .2s;
+  }
+  .option-icon svg { width:24px; height:24px; transition:color .2s; }
+  .option-text { flex:1; }
+  .option-title { font-size:17px; font-weight:600; color:var(--gray-900); }
+  .option-sub { font-size:13px; color:var(--gray-500); margin-top:2px; }
+  .option-check {
+    width:24px; height:24px; border-radius:50%;
+    border:2px solid var(--gray-200); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s;
+  }
+  .option-card.selected .option-check {
+    border-color:var(--blue-500); background:var(--blue-500);
+  }
+  .option-card.selected .option-check::after {
+    content:''; width:8px; height:8px; border-radius:50%; background:var(--white);
+  }
+
+  /* Language pair selector */
+  .lang-selector {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:16px;
+  }
+  .lang-dropdown {
+    flex:1; height:52px; border-radius:14px;
+    background:var(--gray-50); border:2px solid var(--gray-100);
+    padding:0 16px; font-size:15px; font-family:inherit;
+    color:var(--gray-900); font-weight:500;
+    cursor:pointer; outline:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238E8E93' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 16px center;
+    transition:border-color .2s;
+  }
+  .lang-dropdown:focus { border-color:var(--blue-500); }
+  .lang-swap {
+    width:44px; height:44px; border-radius:50%;
+    background:var(--blue-50); border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:transform .3s;
+  }
+  .lang-swap:active { transform:rotate(180deg); }
+  .lang-swap svg { width:20px; height:20px; color:var(--blue-500); }
+
+  /* Text area */
+  .detail-textarea {
+    width:100%; min-height:120px; border-radius:14px;
+    background:var(--gray-50); border:2px solid var(--gray-100);
+    padding:16px; font-size:15px; font-family:inherit;
+    color:var(--gray-900); resize:none; outline:none;
+    line-height:22px; transition:border-color .2s;
+  }
+  .detail-textarea:focus { border-color:var(--blue-500); }
+  .detail-textarea::placeholder { color:var(--gray-500); }
+  .char-count {
+    font-size:11px; color:var(--gray-500); text-align:right;
+    margin-top:6px; margin-bottom:16px;
+  }
+
+  /* Suggestion chips */
+  .chip-group {
+    display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;
+  }
+  .chip {
+    padding:8px 16px; border-radius:20px;
+    background:var(--gray-50); border:1.5px solid var(--gray-100);
+    font-size:13px; font-weight:500; color:var(--gray-900);
+    cursor:pointer; transition:all .2s;
+  }
+  .chip:active { transform:scale(.96); }
+  .chip.selected { background:var(--blue-50); border-color:var(--blue-500); color:var(--blue-500); }
+
+  /* Review card */
+  .review-card {
+    background:var(--gray-50); border-radius:16px;
+    padding:20px; margin-bottom:12px;
+  }
+  .review-label {
+    font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--gray-500); margin-bottom:6px;
+  }
+  .review-value { font-size:17px; font-weight:600; color:var(--gray-900); }
+  .review-edit {
+    font-size:13px; color:var(--blue-500); font-weight:500;
+    cursor:pointer; background:none; border:none; float:right; margin-top:-20px;
+  }
+
+  /* Loading animation */
+  .loading-container {
+    display:none; flex-direction:column; align-items:center;
+    justify-content:center; flex:1; gap:20px; padding:40px 0;
+  }
+  .loading-container.show { display:flex; }
+  .loading-spinner {
+    width:64px; height:64px; border-radius:50%;
+    border:4px solid var(--gray-100);
+    border-top-color:var(--blue-500);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:17px; font-weight:500; color:var(--gray-900); text-align:center; }
+  .loading-sub { font-size:13px; color:var(--gray-500); text-align:center; margin-top:-12px; }
+
+  /* Generated result */
+  .result-container { display:none; flex-direction:column; flex:1; }
+  .result-container.show { display:flex; }
+  .result-header {
+    display:flex; align-items:center; gap:12px;
+    padding:16px; background:var(--green-50); border-radius:16px;
+    margin-bottom:16px;
+  }
+  .result-header-icon {
+    width:44px; height:44px; border-radius:50%;
+    background:var(--green-500); display:flex;
+    align-items:center; justify-content:center;
+  }
+  .result-header-icon svg { width:24px; height:24px; color:var(--white); }
+  .result-header-text { flex:1; }
+  .result-header-title { font-size:17px; font-weight:600; color:var(--gray-900); }
+  .result-header-sub { font-size:13px; color:var(--gray-500); }
+
+  .result-terms { flex:1; overflow-y:auto; }
+  .result-term {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 0; border-bottom:1px solid var(--gray-100);
+  }
+  .result-term:last-child { border-bottom:none; }
+  .result-term-num {
+    width:28px; height:28px; border-radius:50%;
+    background:var(--blue-50); color:var(--blue-500);
+    font-size:13px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .result-term-text { flex:1; }
+  .result-term-en { font-size:15px; font-weight:600; color:var(--gray-900); }
+  .result-term-es { font-size:14px; color:var(--blue-500); font-weight:500; }
+
+  /* Bottom buttons */
+  .bottom-bar {
+    flex-shrink:0; padding:12px 16px 36px;
+    display:flex; gap:10px;
+  }
+  .btn {
+    flex:1; height:52px; border-radius:14px;
+    font-size:15px; font-weight:600; border:none;
+    cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn:active { transform:scale(.98); }
+  .btn-secondary {
+    background:var(--gray-50); color:var(--gray-900);
+    border:1.5px solid var(--gray-100);
+  }
+  .btn-primary { background:var(--blue-500); color:var(--white); }
+  .btn-primary:active { background:var(--blue-600); }
+  .btn-primary:disabled { background:var(--gray-200); color:var(--gray-500); cursor:default; }
+  .btn-primary:disabled:active { transform:none; }
+  .btn-success { background:var(--green-500); color:var(--white); }
+  .btn-success:active { background:#2da94c; }
+
+  .btn svg { width:18px; height:18px; }
+
+  .fade-in { animation:fadeIn .4s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <svg viewBox="0 0 20 20" fill="currentColor"><rect x="1" y="10" width="3" height="8" rx="1"/><rect x="6" y="7" width="3" height="11" rx="1"/><rect x="11" y="4" width="3" height="14" rx="1"/><rect x="16" y="1" width="3" height="17" rx="1"/></svg>
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 4C6.5 4 3.4 5.6 1.2 8.2a1 1 0 001.5 1.3C4.5 7.2 7.1 6 10 6s5.5 1.2 7.3 3.5a1 1 0 001.5-1.3C16.6 5.6 13.5 4 10 4zm0 5c-2 0-3.9.8-5.3 2.2a1 1 0 001.4 1.4C7.2 11.5 8.5 11 10 11s2.8.5 3.9 1.6a1 1 0 001.4-1.4C13.9 9.8 12 9 10 9zm0 5a2 2 0 100 4 2 2 0 000-4z"/></svg>
+      <svg viewBox="0 0 28 14" fill="currentColor"><rect x="0" y="1" width="22" height="12" rx="2.5" stroke="currentColor" fill="none" stroke-width="1"/><rect x="23" y="4.5" width="2.5" height="5" rx="1"/><rect x="2" y="3" width="17" height="8" rx="1.5"/></svg>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="nav-back" onclick="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="nav-skip" id="skipBtn" onclick="skipToEnd()">Skip</button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar-container">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:25%"></div>
+    </div>
+    <div class="progress-steps">
+      <div class="progress-step">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-label active" id="label1">Specialty</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-dot inactive" id="dot2">2</div>
+        <div class="step-label" id="label2">Language</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-dot inactive" id="dot3">3</div>
+        <div class="step-label" id="label3">Details</div>
+      </div>
+      <div class="progress-step">
+        <div class="step-dot inactive" id="dot4">4</div>
+        <div class="step-label" id="label4">Review</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step content -->
+  <div class="step-content">
+
+    <!-- STEP 1: Specialty -->
+    <div class="step-screen active fade-in" id="step1">
+      <div class="step-title">What kind of assignment?</div>
+      <div class="step-desc">Select the specialty area so we can generate the most relevant terminology.</div>
+      <div class="option-grid" id="specialtyOptions">
+        <div class="option-card" onclick="selectOption(this, 'specialty', 'Medical')">
+          <div class="option-icon" style="background:var(--red-100);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--red-500)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="option-text">
+            <div class="option-title">Medical</div>
+            <div class="option-sub">Hospital, clinic, pharmacy</div>
+          </div>
+          <div class="option-check"></div>
+        </div>
+        <div class="option-card" onclick="selectOption(this, 'specialty', 'Legal')">
+          <div class="option-icon" style="background:var(--gold-50);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          <div class="option-text">
+            <div class="option-title">Legal</div>
+            <div class="option-sub">Court, deposition, immigration</div>
+          </div>
+          <div class="option-check"></div>
+        </div>
+        <div class="option-card" onclick="selectOption(this, 'specialty', 'Education')">
+          <div class="option-icon" style="background:var(--blue-50);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-500)" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          </div>
+          <div class="option-text">
+            <div class="option-title">Education</div>
+            <div class="option-sub">IEP, parent-teacher, school</div>
+          </div>
+          <div class="option-check"></div>
+        </div>
+        <div class="option-card" onclick="selectOption(this, 'specialty', 'Business')">
+          <div class="option-icon" style="background:var(--green-50);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--green-500)" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          </div>
+          <div class="option-text">
+            <div class="option-title">Business</div>
+            <div class="option-sub">Meeting, conference, negotiation</div>
+          </div>
+          <div class="option-check"></div>
+        </div>
+        <div class="option-card" onclick="selectOption(this, 'specialty', 'Community')">
+          <div class="option-icon" style="background:var(--blue-50);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-500)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div class="option-text">
+            <div class="option-title">Community Services</div>
+            <div class="option-sub">Social work, housing, benefits</div>
+          </div>
+          <div class="option-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Language -->
+    <div class="step-screen" id="step2">
+      <div class="step-title">Language pair</div>
+      <div class="step-desc">Choose the languages for your interpreting assignment.</div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Source Language</div>
+      <div class="lang-selector">
+        <select class="lang-dropdown" id="sourceLang">
+          <option value="en" selected>English</option>
+          <option value="es">Spanish</option>
+          <option value="ar">Arabic</option>
+          <option value="uk">Ukrainian</option>
+          <option value="tr">Turkish</option>
+          <option value="ur">Urdu</option>
+          <option value="ps">Pashto</option>
+          <option value="hi">Hindi</option>
+          <option value="fr">French</option>
+          <option value="zh">Mandarin</option>
+        </select>
+      </div>
+
+      <div style="display:flex;justify-content:center;margin-bottom:12px;">
+        <button class="lang-swap" onclick="swapLangs()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+        </button>
+      </div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Target Language</div>
+      <div class="lang-selector">
+        <select class="lang-dropdown" id="targetLang">
+          <option value="en">English</option>
+          <option value="es" selected>Spanish</option>
+          <option value="ar">Arabic</option>
+          <option value="uk">Ukrainian</option>
+          <option value="tr">Turkish</option>
+          <option value="ur">Urdu</option>
+          <option value="ps">Pashto</option>
+          <option value="hi">Hindi</option>
+          <option value="fr">French</option>
+          <option value="zh">Mandarin</option>
+        </select>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Interpreting Mode</div>
+        <div class="chip-group" id="modeChips">
+          <span class="chip selected" onclick="toggleChip(this)">Consecutive</span>
+          <span class="chip" onclick="toggleChip(this)">Simultaneous</span>
+          <span class="chip" onclick="toggleChip(this)">Sight Translation</span>
+          <span class="chip" onclick="toggleChip(this)">Phone (OPI)</span>
+          <span class="chip" onclick="toggleChip(this)">Video (VRI)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Details -->
+    <div class="step-screen" id="step3">
+      <div class="step-title">Assignment details</div>
+      <div class="step-desc">The more context you provide, the more accurate your glossary will be.</div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Describe the assignment</div>
+      <textarea class="detail-textarea" id="detailText" placeholder="e.g., Post-operative follow-up for knee replacement surgery. Patient is 6 weeks post-op, will discuss recovery progress, physical therapy exercises, and medication adjustments..." oninput="updateCharCount()"></textarea>
+      <div class="char-count"><span id="charCount">0</span> / 500</div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Quick add topics</div>
+      <div class="chip-group" id="topicChips">
+        <span class="chip" onclick="addTopic(this, 'Medications')">Medications</span>
+        <span class="chip" onclick="addTopic(this, 'Procedures')">Procedures</span>
+        <span class="chip" onclick="addTopic(this, 'Patient rights')">Patient rights</span>
+        <span class="chip" onclick="addTopic(this, 'Insurance')">Insurance</span>
+        <span class="chip" onclick="addTopic(this, 'Follow-up care')">Follow-up care</span>
+        <span class="chip" onclick="addTopic(this, 'Consent forms')">Consent forms</span>
+      </div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Number of terms to generate</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="chip selected" onclick="selectTermCount(this, 15)" id="tc15">15 terms</button>
+        <button class="chip" onclick="selectTermCount(this, 25)" id="tc25">25 terms</button>
+        <button class="chip" onclick="selectTermCount(this, 40)" id="tc40">40 terms</button>
+        <button class="chip" onclick="selectTermCount(this, 60)" id="tc60">60 terms</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Review -->
+    <div class="step-screen" id="step4">
+      <div class="step-title">Review & generate</div>
+      <div class="step-desc">Double-check your settings before we create your glossary.</div>
+
+      <div class="review-card fade-in">
+        <div class="review-label">Specialty</div>
+        <div class="review-value" id="reviewSpecialty">Medical</div>
+        <button class="review-edit" onclick="goToStep(1)">Edit</button>
+      </div>
+      <div class="review-card fade-in" style="animation-delay:.1s">
+        <div class="review-label">Language Pair</div>
+        <div class="review-value" id="reviewLang">English ↔ Spanish</div>
+        <button class="review-edit" onclick="goToStep(2)">Edit</button>
+      </div>
+      <div class="review-card fade-in" style="animation-delay:.2s">
+        <div class="review-label">Mode</div>
+        <div class="review-value" id="reviewMode">Consecutive</div>
+        <button class="review-edit" onclick="goToStep(2)">Edit</button>
+      </div>
+      <div class="review-card fade-in" style="animation-delay:.3s">
+        <div class="review-label">Details</div>
+        <div class="review-value" id="reviewDetails" style="font-size:15px;font-weight:400;color:var(--gray-500);">No details provided</div>
+        <button class="review-edit" onclick="goToStep(3)">Edit</button>
+      </div>
+      <div class="review-card fade-in" style="animation-delay:.4s">
+        <div class="review-label">Terms to Generate</div>
+        <div class="review-value" id="reviewTerms">15 terms</div>
+        <button class="review-edit" onclick="goToStep(3)">Edit</button>
+      </div>
+
+      <!-- Loading state -->
+      <div class="loading-container" id="loadingState">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generating your glossary...</div>
+        <div class="loading-sub">Analyzing context and building terminology</div>
+      </div>
+
+      <!-- Result state -->
+      <div class="result-container" id="resultState">
+        <div class="result-header">
+          <div class="result-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="result-header-text">
+            <div class="result-header-title">Glossary Ready!</div>
+            <div class="result-header-sub" id="resultCount">15 terms generated</div>
+          </div>
+        </div>
+        <div class="result-terms" id="resultTerms"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom buttons -->
+  <div class="bottom-bar">
+    <button class="btn btn-secondary" id="backBtn" onclick="prevStep()" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Back
+    </button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()" disabled>
+      Continue
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+let selections = {
+  specialty: null,
+  sourceLang: 'English',
+  targetLang: 'Spanish',
+  mode: 'Consecutive',
+  details: '',
+  termCount: 15
+};
+
+const sampleTerms = {
+  Medical: [
+    ['Knee replacement','Reemplazo de rodilla'],['Prosthesis','Prótesis'],['Incision','Incisión'],
+    ['Range of motion','Rango de movimiento'],['Physical therapy','Fisioterapia'],['Swelling','Hinchazón'],
+    ['Blood thinner','Anticoagulante'],['Follow-up','Cita de seguimiento'],['Inflammation','Inflamación'],
+    ['Weight-bearing','Soporte de peso'],['Sutures','Suturas'],['Post-operative','Postoperatorio'],
+    ['Pain management','Manejo del dolor'],['X-ray','Radiografía'],['Recovery','Recuperación']
+  ],
+  Legal: [
+    ['Plaintiff','Demandante'],['Defendant','Demandado'],['Testimony','Testimonio'],
+    ['Evidence','Evidencia'],['Objection','Objeción'],['Verdict','Veredicto'],
+    ['Bail','Fianza'],['Custody','Custodia'],['Plea','Declaración'],
+    ['Sentence','Sentencia'],['Appeal','Apelación'],['Deposition','Deposición'],
+    ['Subpoena','Citación'],['Oath','Juramento'],['Counsel','Abogado']
+  ],
+  Education: [
+    ['IEP','Plan educativo individualizado'],['Accommodation','Adaptación'],['Assessment','Evaluación'],
+    ['Grade level','Nivel de grado'],['Special education','Educación especial'],['Disability','Discapacidad'],
+    ['Mainstream','Integración'],['Behavior plan','Plan de comportamiento'],['Progress report','Informe de progreso'],
+    ['Tutor','Tutor'],['Enrollment','Inscripción'],['Curriculum','Currículo'],
+    ['Attendance','Asistencia'],['Parent conference','Conferencia de padres'],['Transcript','Expediente académico']
+  ],
+  Business: [
+    ['Revenue','Ingresos'],['Stakeholder','Parte interesada'],['Quarterly report','Informe trimestral'],
+    ['Merger','Fusión'],['Acquisition','Adquisición'],['Profit margin','Margen de ganancia'],
+    ['Budget','Presupuesto'],['Invoice','Factura'],['Contract','Contrato'],
+    ['Deadline','Fecha límite'],['Negotiation','Negociación'],['Compliance','Cumplimiento'],
+    ['ROI','Retorno de inversión'],['Strategy','Estrategia'],['Shareholder','Accionista']
+  ],
+  'Community': [
+    ['Benefits','Beneficios'],['Eligibility','Elegibilidad'],['Case worker','Trabajador social'],
+    ['Housing assistance','Asistencia de vivienda'],['Food stamps','Cupones de alimento'],['Application','Solicitud'],
+    ['Income verification','Verificación de ingresos'],['Dependent','Dependiente'],['Referral','Referencia'],
+    ['Advocacy','Defensoría'],['Shelter','Refugio'],['Resources','Recursos'],
+    ['Counseling','Consejería'],['Documentation','Documentación'],['Appointment','Cita']
+  ]
+};
+
+function selectOption(el, type, value) {
+  const parent = el.parentElement;
+  parent.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selections[type] = value;
+  document.getElementById('nextBtn').disabled = false;
+
+  // Update topic chips based on specialty
+  updateTopicChips(value);
+}
+
+function updateTopicChips(specialty) {
+  const topics = {
+    Medical: ['Medications','Procedures','Patient rights','Insurance','Follow-up care','Consent forms'],
+    Legal: ['Due process','Miranda rights','Court procedures','Immigration','Family law','Criminal defense'],
+    Education: ['IEP process','Accommodations','Grade placement','Behavior support','Testing','Parent rights'],
+    Business: ['Contracts','Financials','HR policies','Marketing','Operations','Strategy'],
+    Community: ['Housing','Benefits','Immigration','Employment','Healthcare access','Legal aid']
+  };
+  const container = document.getElementById('topicChips');
+  if (container && topics[specialty]) {
+    container.innerHTML = topics[specialty].map(t =>
+      `<span class="chip" onclick="addTopic(this, '${t}')">${t}</span>`
+    ).join('');
+  }
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+  const selected = el.parentElement.querySelectorAll('.chip.selected');
+  selections.mode = Array.from(selected).map(c => c.textContent).join(', ') || 'Not specified';
+}
+
+function addTopic(el, topic) {
+  el.classList.toggle('selected');
+  const textarea = document.getElementById('detailText');
+  if (el.classList.contains('selected')) {
+    textarea.value = textarea.value ? textarea.value + ', ' + topic : topic;
+  } else {
+    textarea.value = textarea.value.replace(new RegExp(',?\\s*' + topic), '').replace(/^,\\s*/, '');
+  }
+  updateCharCount();
+}
+
+function selectTermCount(el, count) {
+  document.querySelectorAll('#tc15,#tc25,#tc40,#tc60').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selections.termCount = count;
+}
+
+function updateCharCount() {
+  const text = document.getElementById('detailText').value;
+  document.getElementById('charCount').textContent = text.length;
+  selections.details = text;
+}
+
+function swapLangs() {
+  const src = document.getElementById('sourceLang');
+  const tgt = document.getElementById('targetLang');
+  const tmp = src.value;
+  src.value = tgt.value;
+  tgt.value = tmp;
+}
+
+function updateProgress() {
+  const pct = (currentStep / totalSteps) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  for (let i = 1; i <= totalSteps; i++) {
+    const dot = document.getElementById('dot' + i);
+    const label = document.getElementById('label' + i);
+    dot.className = 'step-dot';
+    label.className = 'step-label';
+    if (i < currentStep) {
+      dot.classList.add('done');
+      dot.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      label.classList.add('done');
+    } else if (i === currentStep) {
+      dot.classList.add('active');
+      dot.textContent = i;
+      label.classList.add('active');
+    } else {
+      dot.classList.add('inactive');
+      dot.textContent = i;
+    }
+  }
+}
+
+function showStep(step) {
+  document.querySelectorAll('.step-screen').forEach(s => { s.classList.remove('active'); s.classList.remove('fade-in'); });
+  const target = document.getElementById('step' + step);
+  target.classList.add('active', 'fade-in');
+
+  // Back button
+  document.getElementById('backBtn').style.display = step > 1 ? 'flex' : 'none';
+
+  // Next button
+  const nextBtn = document.getElementById('nextBtn');
+  if (step === 4) {
+    nextBtn.innerHTML = 'Generate Glossary <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>';
+    nextBtn.disabled = false;
+    populateReview();
+  } else {
+    nextBtn.innerHTML = 'Continue <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>';
+  }
+
+  // Enable/disable based on selections
+  if (step === 1) nextBtn.disabled = !selections.specialty;
+  if (step === 2) nextBtn.disabled = false;
+  if (step === 3) nextBtn.disabled = false;
+
+  // Skip button
+  document.getElementById('skipBtn').style.display = step < 4 ? 'block' : 'none';
+}
+
+function populateReview() {
+  document.getElementById('reviewSpecialty').textContent = selections.specialty || 'Not selected';
+  const srcName = document.getElementById('sourceLang').selectedOptions[0].text;
+  const tgtName = document.getElementById('targetLang').selectedOptions[0].text;
+  document.getElementById('reviewLang').textContent = srcName + ' ↔ ' + tgtName;
+  document.getElementById('reviewMode').textContent = selections.mode;
+  document.getElementById('reviewDetails').textContent = selections.details || 'No details provided';
+  document.getElementById('reviewDetails').style.color = selections.details ? 'var(--gray-900)' : 'var(--gray-500)';
+  document.getElementById('reviewDetails').style.fontWeight = selections.details ? '400' : '400';
+  document.getElementById('reviewTerms').textContent = selections.termCount + ' terms';
+}
+
+function nextStep() {
+  if (currentStep === 4) {
+    generateGlossary();
+    return;
+  }
+  if (currentStep < totalSteps) {
+    currentStep++;
+    updateProgress();
+    showStep(currentStep);
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    currentStep--;
+    updateProgress();
+    showStep(currentStep);
+  }
+}
+
+function goToStep(step) {
+  currentStep = step;
+  updateProgress();
+  showStep(currentStep);
+}
+
+function goBack() {
+  if (currentStep > 1) prevStep();
+}
+
+function skipToEnd() {
+  if (!selections.specialty) selections.specialty = 'Medical';
+  currentStep = 4;
+  updateProgress();
+  showStep(4);
+}
+
+function generateGlossary() {
+  const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
+  const loading = document.getElementById('loadingState');
+  const reviews = document.querySelectorAll('#step4 .review-card');
+
+  // Hide reviews, show loading
+  reviews.forEach(r => r.style.display = 'none');
+  document.querySelector('#step4 .step-title').textContent = 'Generating...';
+  document.querySelector('#step4 .step-desc').textContent = 'AI is building your terminology glossary.';
+  loading.classList.add('show');
+  nextBtn.disabled = true;
+  nextBtn.textContent = 'Generating...';
+  backBtn.style.display = 'none';
+
+  // Simulate generation
+  setTimeout(() => {
+    loading.classList.remove('show');
+    document.querySelector('#step4 .step-title').textContent = 'Your glossary is ready!';
+    document.querySelector('#step4 .step-desc').textContent = '';
+
+    const result = document.getElementById('resultState');
+    const termsContainer = document.getElementById('resultTerms');
+    const terms = sampleTerms[selections.specialty] || sampleTerms.Medical;
+    const count = Math.min(selections.termCount, terms.length);
+
+    document.getElementById('resultCount').textContent = count + ' terms generated for ' + selections.specialty;
+
+    termsContainer.innerHTML = terms.slice(0, count).map((t, i) =>
+      `<div class="result-term fade-in" style="animation-delay:${i * 0.05}s">
+        <div class="result-term-num">${i + 1}</div>
+        <div class="result-term-text">
+          <div class="result-term-en">${t[0]}</div>
+          <div class="result-term-es">${t[1]}</div>
+        </div>
+      </div>`
+    ).join('');
+
+    result.classList.add('show');
+
+    // Update buttons
+    nextBtn.disabled = false;
+    nextBtn.className = 'btn btn-success';
+    nextBtn.innerHTML = 'Save & Start Studying <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    nextBtn.onclick = () => alert('Glossary saved! Navigating to Study flashcards...');
+
+    backBtn.style.display = 'flex';
+    backBtn.textContent = 'Edit';
+    backBtn.onclick = () => {
+      // Reset result state
+      result.classList.remove('show');
+      reviews.forEach(r => r.style.display = 'block');
+      document.querySelector('#step4 .step-title').textContent = 'Review & generate';
+      document.querySelector('#step4 .step-desc').textContent = 'Double-check your settings before we create your glossary.';
+      nextBtn.className = 'btn btn-primary';
+      nextBtn.innerHTML = 'Generate Glossary ✨';
+      nextBtn.onclick = () => nextStep();
+      backBtn.onclick = () => prevStep();
+    };
+  }, 2500);
+}
+</script>
+</body>
+</html>

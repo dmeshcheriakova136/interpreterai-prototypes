@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InterpretAI — Prototypes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Inter',-apple-system,sans-serif;
+    background:#f0f0f0; min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 20px;
+  }
+  .container { max-width:600px; width:100%; }
+  h1 { font-size:32px; font-weight:700; color:#1A1A1A; margin-bottom:8px; }
+  .subtitle { font-size:15px; color:#8E8E93; margin-bottom:32px; }
+  .card {
+    background:#fff; border-radius:16px; padding:24px;
+    margin-bottom:12px; text-decoration:none;
+    display:block; transition:transform .15s, box-shadow .15s;
+    box-shadow:0 2px 8px rgba(0,0,0,.04);
+  }
+  .card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+  .card-num {
+    font-size:13px; font-weight:600; color:#0066FF;
+    text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;
+  }
+  .card-title { font-size:20px; font-weight:600; color:#1A1A1A; margin-bottom:4px; }
+  .card-desc { font-size:15px; color:#8E8E93; line-height:22px; }
+  .badge {
+    display:inline-block; padding:4px 10px; border-radius:12px;
+    font-size:11px; font-weight:600; margin-top:10px;
+  }
+  .badge-blue { background:#EEF4FF; color:#0066FF; }
+  .badge-green { background:#E8F8ED; color:#34C759; }
+  .badge-gold { background:#FFF8E7; color:#F0AD4E; }
+  .badge-red { background:#FFEBEE; color:#E53935; }
+  .footer { text-align:center; margin-top:32px; font-size:13px; color:#8E8E93; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>InterpretAI</h1>
+  <div class="subtitle">HW4 — Ideation Prototyping · 4 Interaction Models</div>
+
+  <a class="card" href="preview-tabbar.html">
+    <div class="card-num">Prototype 1</div>
+    <div class="card-title">Tab-Based Flat Navigation</div>
+    <div class="card-desc">4-tab structure (Glossary, AI Prep, Study, Profile). Everything accessible within one tap. Master-detail layout.</div>
+    <span class="badge badge-blue">Spatial Organization</span>
+  </a>
+
+  <a class="card" href="preview-aiprep-chat.html">
+    <div class="card-num">Prototype 2</div>
+    <div class="card-title">Chat-First Conversational UI</div>
+    <div class="card-desc">Describe your assignment to AI, get terminology inline, save terms, take a quiz — all within a single chat flow.</div>
+    <span class="badge badge-green">Operational Pattern</span>
+  </a>
+
+  <a class="card" href="preview-dashboard.html">
+    <div class="card-num">Prototype 3</div>
+    <div class="card-title">Dashboard Hub</div>
+    <div class="card-desc">Everything-at-a-glance home screen. Upcoming assignment, stats, quick actions, recent glossaries, study streak.</div>
+    <span class="badge badge-gold">Information Hierarchy</span>
+  </a>
+
+  <a class="card" href="preview-wizard.html">
+    <div class="card-num">Prototype 4</div>
+    <div class="card-title">Guided Wizard Flow</div>
+    <div class="card-desc">Step-by-step: pick specialty → language pair → add details → review → generate glossary. Minimal cognitive load.</div>
+    <span class="badge badge-red">User Story Pattern</span>
+  </a>
+
+  <div class="footer">INFO 490 · Spring 2026 · Daria Meshcheriakova</div>
+</div>
+</body>
+</html>

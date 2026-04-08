@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>InterpretAI — Dashboard Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root {
+    --blue-500:#0066FF; --blue-600:#0052CC; --blue-100:#DEEAFF; --blue-50:#EEF4FF;
+    --white:#FFFFFF; --gray-50:#F7F7F8; --gray-100:#EFEFEF; --gray-200:#D9D9D9;
+    --gray-500:#8E8E93; --gray-900:#1A1A1A;
+    --red-500:#E53935; --red-100:#FFEBEE;
+    --green-500:#34C759; --green-50:#E8F8ED;
+    --gold-500:#F0AD4E; --gold-50:#FFF8E7;
+  }
+
+  body {
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+    background:#f0f0f0;
+    display:flex; justify-content:center; align-items:center; min-height:100vh;
+  }
+
+  .phone {
+    width:390px; height:844px; background:var(--white);
+    border-radius:40px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.15);
+    display:flex; flex-direction:column; position:relative;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 28px 0; height:54px; flex-shrink:0;
+  }
+  .status-bar .time { font-size:16px; font-weight:600; color:var(--gray-900); }
+  .status-bar .icons { display:flex; gap:6px; align-items:center; }
+  .status-bar .icons svg { width:18px; height:18px; }
+
+  /* Content */
+  .content {
+    flex:1; overflow-y:auto; padding:8px 16px 16px;
+    scroll-behavior:smooth;
+  }
+  .content::-webkit-scrollbar { display:none; }
+
+  /* Greeting */
+  .greeting { margin-bottom:4px; }
+  .greeting-hello { font-size:15px; color:var(--gray-500); font-weight:500; }
+  .greeting-name { font-size:34px; font-weight:700; color:var(--gray-900); line-height:41px; }
+
+  /* Date badge */
+  .date-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:12px;
+    background:var(--gray-50); margin-bottom:20px;
+    font-size:13px; color:var(--gray-500); font-weight:500;
+  }
+  .date-badge svg { width:14px; height:14px; }
+
+  /* Upcoming assignment card */
+  .upcoming-card {
+    background:linear-gradient(135deg, var(--blue-50), var(--blue-100));
+    border-radius:16px; padding:20px; margin-bottom:16px;
+    cursor:pointer; transition:transform .15s;
+    position:relative; overflow:hidden;
+  }
+  .upcoming-card:active { transform:scale(.98); }
+  .upcoming-label {
+    font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--blue-500); margin-bottom:10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .upcoming-label .pulse {
+    width:8px; height:8px; border-radius:50%; background:var(--blue-500);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; } 50% { opacity:.4; }
+  }
+  .upcoming-title { font-size:20px; font-weight:600; color:var(--gray-900); margin-bottom:4px; }
+  .upcoming-meta { font-size:15px; color:var(--gray-500); margin-bottom:14px; }
+  .upcoming-details {
+    display:flex; gap:16px;
+  }
+  .upcoming-detail {
+    display:flex; align-items:center; gap:6px;
+    font-size:13px; color:var(--gray-900); font-weight:500;
+  }
+  .upcoming-detail svg { width:16px; height:16px; color:var(--blue-500); }
+  .upcoming-action {
+    position:absolute; right:20px; top:50%; transform:translateY(-50%);
+    width:40px; height:40px; border-radius:50%;
+    background:var(--blue-500); border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 8px rgba(0,102,255,.3);
+    transition:transform .15s;
+  }
+  .upcoming-action:active { transform:translateY(-50%) scale(.92); }
+  .upcoming-action svg { width:20px; height:20px; color:var(--white); }
+
+  /* Stats row */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    margin-bottom:20px;
+  }
+  .stat-card {
+    background:var(--gray-50); border-radius:16px;
+    padding:16px 12px; text-align:center;
+    cursor:pointer; transition:transform .15s;
+  }
+  .stat-card:active { transform:scale(.97); }
+  .stat-number { font-size:28px; font-weight:700; line-height:1; margin-bottom:4px; }
+  .stat-label { font-size:11px; color:var(--gray-500); font-weight:500; text-transform:uppercase; letter-spacing:.3px; }
+
+  /* Section header */
+  .section-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:12px;
+  }
+  .section-title { font-size:20px; font-weight:600; color:var(--gray-900); }
+  .section-link { font-size:15px; color:var(--blue-500); font-weight:500; cursor:pointer; background:none; border:none; }
+
+  /* Quick actions */
+  .quick-actions {
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px;
+    margin-bottom:20px;
+  }
+  .quick-action {
+    display:flex; align-items:center; gap:12px;
+    padding:16px; border-radius:16px;
+    background:var(--gray-50); cursor:pointer;
+    transition:transform .15s, opacity .15s;
+    border:none; text-align:left; font-family:inherit;
+  }
+  .quick-action:active { transform:scale(.97); opacity:.8; }
+  .quick-action-icon {
+    width:44px; height:44px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .quick-action-icon svg { width:22px; height:22px; }
+  .quick-action-text { font-size:15px; font-weight:500; color:var(--gray-900); line-height:1.3; }
+
+  /* Recent glossaries */
+  .glossary-list { margin-bottom:20px; }
+  .glossary-row {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 0; border-bottom:1px solid var(--gray-100);
+    cursor:pointer; transition:opacity .15s;
+  }
+  .glossary-row:last-child { border-bottom:none; }
+  .glossary-row:active { opacity:.7; }
+  .glossary-icon {
+    width:44px; height:44px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .glossary-icon svg { width:20px; height:20px; }
+  .glossary-text { flex:1; min-width:0; }
+  .glossary-title { font-size:17px; font-weight:600; color:var(--gray-900); }
+  .glossary-sub { font-size:13px; color:var(--gray-500); margin-top:2px; }
+  .glossary-badge {
+    padding:4px 10px; border-radius:12px;
+    font-size:11px; font-weight:600;
+  }
+  .glossary-chevron { color:var(--gray-200); font-size:18px; }
+
+  /* Study streak */
+  .streak-card {
+    background:var(--gray-50); border-radius:16px;
+    padding:20px; margin-bottom:20px;
+  }
+  .streak-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .streak-title { font-size:17px; font-weight:600; color:var(--gray-900); }
+  .streak-badge {
+    display:flex; align-items:center; gap:4px;
+    padding:4px 10px; border-radius:12px;
+    background:var(--gold-50); color:var(--gold-500);
+    font-size:13px; font-weight:600;
+  }
+  .streak-days {
+    display:flex; justify-content:space-between; gap:4px;
+  }
+  .streak-day {
+    flex:1; text-align:center;
+  }
+  .streak-dot {
+    width:32px; height:32px; border-radius:50%; margin:0 auto 4px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px;
+  }
+  .streak-dot.done { background:var(--green-50); }
+  .streak-dot.done svg { color:var(--green-500); }
+  .streak-dot.today { background:var(--blue-500); box-shadow:0 2px 8px rgba(0,102,255,.3); }
+  .streak-dot.today svg { color:var(--white); }
+  .streak-dot.future { background:var(--gray-100); }
+  .streak-day-label { font-size:11px; color:var(--gray-500); font-weight:500; }
+  .streak-day-label.today { color:var(--blue-500); font-weight:600; }
+
+  /* Tab bar */
+  .tab-bar {
+    display:flex; align-items:center; justify-content:space-around;
+    padding:8px 0 28px; background:var(--white);
+    box-shadow:0 -1px 4px rgba(0,0,0,.06); flex-shrink:0;
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; padding:6px 16px; border-radius:20px;
+    background:transparent; border:none; transition:all .25s;
+  }
+  .tab-item.active { background:var(--gray-50); }
+  .tab-item svg { width:24px; height:24px; }
+  .tab-item.active svg { color:var(--blue-500); }
+  .tab-item:not(.active) svg { color:var(--gray-500); }
+  .tab-label { font-size:13px; font-weight:500; }
+  .tab-item.active .tab-label { color:var(--blue-500); }
+  .tab-item:not(.active) .tab-label { color:var(--gray-500); }
+
+  /* Notification dot */
+  .notif-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--red-500); position:absolute;
+    top:4px; right:12px;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    position:absolute; inset:0; background:rgba(0,0,0,.4);
+    z-index:100; display:none; align-items:flex-end;
+    border-radius:40px; overflow:hidden;
+  }
+  .modal-overlay.show { display:flex; }
+  .modal-sheet {
+    background:var(--white); width:100%;
+    border-radius:20px 20px 0 0; padding:20px 16px 40px;
+    animation:slideUp .3s ease;
+  }
+  @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+  .modal-handle {
+    width:36px; height:4px; border-radius:2px;
+    background:var(--gray-200); margin:0 auto 20px;
+  }
+  .modal-title { font-size:20px; font-weight:600; color:var(--gray-900); margin-bottom:16px; }
+  .modal-input {
+    width:100%; height:48px; border-radius:12px;
+    background:var(--gray-50); border:none; padding:0 16px;
+    font-size:15px; font-family:inherit; color:var(--gray-900);
+    outline:none; margin-bottom:12px;
+  }
+  .modal-input:focus { box-shadow:0 0 0 2px var(--blue-100); }
+  .modal-btn {
+    width:100%; height:48px; border-radius:12px;
+    background:var(--blue-500); color:var(--white);
+    font-size:15px; font-weight:600; border:none;
+    cursor:pointer; transition:background .2s;
+  }
+  .modal-btn:active { background:var(--blue-600); }
+
+  .fade-in { animation:fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <svg viewBox="0 0 20 20" fill="currentColor"><rect x="1" y="10" width="3" height="8" rx="1"/><rect x="6" y="7" width="3" height="11" rx="1"/><rect x="11" y="4" width="3" height="14" rx="1"/><rect x="16" y="1" width="3" height="17" rx="1"/></svg>
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 4C6.5 4 3.4 5.6 1.2 8.2a1 1 0 001.5 1.3C4.5 7.2 7.1 6 10 6s5.5 1.2 7.3 3.5a1 1 0 001.5-1.3C16.6 5.6 13.5 4 10 4zm0 5c-2 0-3.9.8-5.3 2.2a1 1 0 001.4 1.4C7.2 11.5 8.5 11 10 11s2.8.5 3.9 1.6a1 1 0 001.4-1.4C13.9 9.8 12 9 10 9zm0 5a2 2 0 100 4 2 2 0 000-4z"/></svg>
+      <svg viewBox="0 0 28 14" fill="currentColor"><rect x="0" y="1" width="22" height="12" rx="2.5" stroke="currentColor" fill="none" stroke-width="1"/><rect x="23" y="4.5" width="2.5" height="5" rx="1"/><rect x="2" y="3" width="17" height="8" rx="1.5"/></svg>
+    </div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="content">
+
+    <!-- Greeting -->
+    <div class="greeting fade-in">
+      <div class="greeting-hello">Good morning,</div>
+      <div class="greeting-name">Alex</div>
+    </div>
+    <div class="date-badge fade-in">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Tuesday, April 7
+    </div>
+
+    <!-- Upcoming Assignment -->
+    <div class="upcoming-card fade-in" onclick="openAssignmentDetail()">
+      <div class="upcoming-label"><span class="pulse"></span> NEXT ASSIGNMENT</div>
+      <div class="upcoming-title">Orthopedic Follow-Up</div>
+      <div class="upcoming-meta">Tomorrow at 10:30 AM</div>
+      <div class="upcoming-details">
+        <div class="upcoming-detail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          St. Mary's Hospital
+        </div>
+        <div class="upcoming-detail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          ES ↔ EN
+        </div>
+      </div>
+      <button class="upcoming-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row fade-in">
+      <div class="stat-card" onclick="showStatDetail('terms')">
+        <div class="stat-number" style="color:var(--blue-500);">248</div>
+        <div class="stat-label">Total Terms</div>
+      </div>
+      <div class="stat-card" onclick="showStatDetail('due')">
+        <div class="stat-number" style="color:var(--gold-500);">12</div>
+        <div class="stat-label">Due Today</div>
+      </div>
+      <div class="stat-card" onclick="showStatDetail('accuracy')">
+        <div class="stat-number" style="color:var(--green-500);">87%</div>
+        <div class="stat-label">Accuracy</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-header">
+      <span class="section-title">Quick Actions</span>
+    </div>
+    <div class="quick-actions fade-in">
+      <button class="quick-action" onclick="showModal('prep')">
+        <div class="quick-action-icon" style="background:var(--blue-50);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-500)" stroke-width="2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
+        </div>
+        <span class="quick-action-text">AI Prep<br>Session</span>
+      </button>
+      <button class="quick-action" onclick="showModal('add')">
+        <div class="quick-action-icon" style="background:var(--green-50);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--green-500)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <span class="quick-action-text">Add New<br>Term</span>
+      </button>
+      <button class="quick-action" onclick="startStudy()">
+        <div class="quick-action-icon" style="background:var(--gold-50);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <span class="quick-action-text">Study<br>Flashcards</span>
+      </button>
+      <button class="quick-action" onclick="showModal('import')">
+        <div class="quick-action-icon" style="background:var(--red-100);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--red-500)" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </div>
+        <span class="quick-action-text">Import<br>Glossary</span>
+      </button>
+    </div>
+
+    <!-- Recent Glossaries -->
+    <div class="section-header">
+      <span class="section-title">Recent Glossaries</span>
+      <button class="section-link">See All</button>
+    </div>
+    <div class="glossary-list fade-in">
+      <div class="glossary-row" onclick="openGlossary('medical')">
+        <div class="glossary-icon" style="background:var(--blue-50);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-500)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="glossary-text">
+          <div class="glossary-title">Medical — Orthopedic</div>
+          <div class="glossary-sub">42 terms · Updated 2h ago</div>
+        </div>
+        <span class="glossary-badge" style="background:var(--green-50); color:var(--green-500);">Ready</span>
+        <span class="glossary-chevron">›</span>
+      </div>
+      <div class="glossary-row" onclick="openGlossary('legal')">
+        <div class="glossary-icon" style="background:var(--gold-50);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="glossary-text">
+          <div class="glossary-title">Legal — Court Proceedings</div>
+          <div class="glossary-sub">28 terms · Updated yesterday</div>
+        </div>
+        <span class="glossary-badge" style="background:var(--gold-50); color:var(--gold-500);">Review</span>
+        <span class="glossary-chevron">›</span>
+      </div>
+      <div class="glossary-row" onclick="openGlossary('education')">
+        <div class="glossary-icon" style="background:var(--blue-50);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-500)" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        </div>
+        <div class="glossary-text">
+          <div class="glossary-title">Education — IEP Meeting</div>
+          <div class="glossary-sub">35 terms · Updated 3 days ago</div>
+        </div>
+        <span class="glossary-badge" style="background:var(--green-50); color:var(--green-500);">Ready</span>
+        <span class="glossary-chevron">›</span>
+      </div>
+    </div>
+
+    <!-- Study Streak -->
+    <div class="section-header">
+      <span class="section-title">Study Streak</span>
+      <button class="section-link">History</button>
+    </div>
+    <div class="streak-card fade-in">
+      <div class="streak-header">
+        <span class="streak-title">This Week</span>
+        <span class="streak-badge">🔥 5 days</span>
+      </div>
+      <div class="streak-days">
+        <div class="streak-day">
+          <div class="streak-dot done">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="streak-day-label">Mon</div>
+        </div>
+        <div class="streak-day">
+          <div class="streak-dot done">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="streak-day-label">Tue</div>
+        </div>
+        <div class="streak-day">
+          <div class="streak-dot done">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="streak-day-label">Wed</div>
+        </div>
+        <div class="streak-day">
+          <div class="streak-dot done">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="streak-day-label">Thu</div>
+        </div>
+        <div class="streak-day">
+          <div class="streak-dot done">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="streak-day-label">Fri</div>
+        </div>
+        <div class="streak-day">
+          <div class="streak-dot today">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="4"/></svg>
+          </div>
+          <div class="streak-day-label today">Sat</div>
+        </div>
+        <div class="streak-day">
+          <div class="streak-dot future"></div>
+          <div class="streak-day-label">Sun</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-item active" style="position:relative;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h1v7c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h1a1 1 0 00.7-1.7l-9-9a1 1 0 00-1.4 0l-9 9A1 1 0 003 13zm7 7v-5h4v5h-4zm6 0v-6c0-.6-.4-1-1-1H9c-.6 0-1 .4-1 1v6H6v-7.6l6-6 6 6V20h-2z"/></svg>
+      <span class="tab-label">Home</span>
+    </button>
+    <button class="tab-item" onclick="location.href='preview-tabbar.html'">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm0 2h7v5h5v11H6V4zm2 8v2h8v-2H8zm0 4v2h5v-2H8z"/></svg>
+      <span class="tab-label">Glossary</span>
+    </button>
+    <button class="tab-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
+      <span class="tab-label">AI Prep</span>
+    </button>
+    <button class="tab-item" style="position:relative;">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v1h2a2 2 0 012 2v12a2 2 0 01-2 2H8a2 2 0 01-2-2v-1H4a2 2 0 01-2-2V6a2 2 0 012-2zm4 15h10V7H8v12zM6 6v10h0V6z"/></svg>
+      <span class="tab-label">Study</span>
+      <span class="notif-dot"></span>
+    </button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showModal(type) {
+  const modal = document.getElementById('modal');
+  const content = document.getElementById('modalContent');
+
+  if (type === 'prep') {
+    content.innerHTML = `
+      <div class="modal-title">Start AI Prep Session</div>
+      <input class="modal-input" placeholder="Assignment type (e.g., Medical, Legal...)" id="modalInput1">
+      <input class="modal-input" placeholder="Language pair (e.g., ES ↔ EN)" id="modalInput2">
+      <input class="modal-input" placeholder="Additional details..." id="modalInput3">
+      <button class="modal-btn" onclick="startPrep()">Generate Glossary ✨</button>
+    `;
+  } else if (type === 'add') {
+    content.innerHTML = `
+      <div class="modal-title">Add New Term</div>
+      <input class="modal-input" placeholder="English term" id="modalInput1">
+      <input class="modal-input" placeholder="Spanish translation" id="modalInput2">
+      <input class="modal-input" placeholder="Category (e.g., Medical, Legal...)" id="modalInput3">
+      <button class="modal-btn" onclick="saveTerm()">Save Term</button>
+    `;
+  } else if (type === 'import') {
+    content.innerHTML = `
+      <div class="modal-title">Import Glossary</div>
+      <div style="background:var(--gray-50);border-radius:16px;padding:32px;text-align:center;margin-bottom:12px;border:2px dashed var(--gray-200);cursor:pointer;" onclick="simulateImport()">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gray-500)" stroke-width="1.5" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <div style="font-size:15px;font-weight:500;color:var(--gray-900);margin-bottom:4px;">Tap to upload file</div>
+        <div style="font-size:13px;color:var(--gray-500);">CSV, JSON, or Anki deck</div>
+      </div>
+      <button class="modal-btn" style="background:var(--gray-200);color:var(--gray-500);cursor:default;">Import</button>
+    `;
+  }
+  modal.classList.add('show');
+}
+
+function closeModal(e) {
+  if (e.target === e.currentTarget) {
+    document.getElementById('modal').classList.remove('show');
+  }
+}
+
+function startPrep() {
+  document.getElementById('modal').classList.remove('show');
+  // Simulated navigation feedback
+  const card = document.querySelector('.upcoming-card');
+  card.style.background = 'linear-gradient(135deg, var(--green-50), var(--green-50))';
+  card.querySelector('.upcoming-label').innerHTML = '<span class="pulse" style="background:var(--green-500);"></span> PREPARING...';
+  setTimeout(() => {
+    card.style.background = '';
+    card.querySelector('.upcoming-label').innerHTML = '<span class="pulse"></span> NEXT ASSIGNMENT';
+    alert('Navigating to AI Prep chat...');
+  }, 1500);
+}
+
+function saveTerm() {
+  document.getElementById('modal').classList.remove('show');
+  // Update stat
+  const statEl = document.querySelector('.stat-number');
+  statEl.textContent = '249';
+  statEl.style.transform = 'scale(1.2)';
+  setTimeout(() => statEl.style.transform = '', 300);
+}
+
+function simulateImport() {
+  const btn = event.currentTarget.parentElement.querySelector('.modal-btn');
+  const dropzone = event.currentTarget;
+  dropzone.style.borderColor = 'var(--blue-500)';
+  dropzone.style.background = 'var(--blue-50)';
+  dropzone.innerHTML = `
+    <div style="font-size:15px;font-weight:500;color:var(--blue-500);">medical_terms.csv</div>
+    <div style="font-size:13px;color:var(--gray-500);margin-top:4px;">56 terms detected</div>
+  `;
+  btn.style.background = 'var(--blue-500)';
+  btn.style.color = 'var(--white)';
+  btn.style.cursor = 'pointer';
+  btn.textContent = 'Import 56 Terms';
+  btn.onclick = () => {
+    document.getElementById('modal').classList.remove('show');
+    const statEl = document.querySelector('.stat-number');
+    statEl.textContent = '304';
+    statEl.style.transform = 'scale(1.2)';
+    setTimeout(() => statEl.style.transform = '', 300);
+  };
+}
+
+function startStudy() {
+  const badge = document.querySelector('.stats-row .stat-card:nth-child(2)');
+  badge.style.transform = 'scale(1.05)';
+  badge.style.background = 'var(--gold-50)';
+  setTimeout(() => {
+    badge.style.transform = '';
+    badge.style.background = '';
+    alert('Navigating to Study flashcards...');
+  }, 300);
+}
+
+function openAssignmentDetail() {
+  alert('Opening assignment detail: Orthopedic Follow-Up — St. Mary\'s Hospital, Tomorrow 10:30 AM');
+}
+
+function openGlossary(type) {
+  const names = { medical: 'Medical — Orthopedic', legal: 'Legal — Court Proceedings', education: 'Education — IEP Meeting' };
+  alert('Opening glossary: ' + names[type]);
+}
+
+function showStatDetail(type) {
+  const msgs = {
+    terms: '248 total terms across 6 glossaries.\nMost terms: Medical (78), Legal (62), Education (45)',
+    due: '12 terms due for review today.\n8 from Medical, 4 from Legal.',
+    accuracy: '87% overall accuracy this week.\nUp from 82% last week!'
+  };
+  alert(msgs[type]);
+}
+</script>
+</body>
+</html>
