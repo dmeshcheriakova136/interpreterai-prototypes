@@ -217,6 +217,123 @@
   .screen { display: none; }
   .screen.active { display: block; }
 
+  /* Sub-screen nav (back button) */
+  .sub-nav {
+    display:flex; align-items:center; gap:8px; margin-bottom:16px;
+    padding-top:4px;
+  }
+  .sub-nav button {
+    background:none; border:none; cursor:pointer; padding:4px;
+    display:flex; align-items:center; color:var(--blue-500);
+    font-size:15px; font-weight:500; font-family:inherit;
+  }
+  .sub-nav button svg { width:22px; height:22px; }
+
+  /* Big choice blocks */
+  .choice-grid {
+    display:flex; flex-direction:column; gap:12px; margin-top:16px;
+  }
+  .choice-block {
+    background:var(--gray-50); border:2px solid var(--gray-100);
+    border-radius:16px; padding:24px 20px; cursor:pointer;
+    transition:all .2s; text-align:center;
+  }
+  .choice-block:hover { border-color:var(--blue-500); background:var(--blue-50); }
+  .choice-block:active { transform:scale(.98); }
+  .choice-block .icon-box {
+    width:64px; height:64px; border-radius:16px;
+    background:var(--blue-500); margin:0 auto 16px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .choice-block .icon-box svg { width:32px; height:32px; color:var(--white); }
+  .choice-block.ai .icon-box { background:linear-gradient(135deg, var(--blue-500), var(--blue-600)); }
+  .choice-block.custom .icon-box { background:var(--green-500); }
+  .choice-block h3 {
+    font-size:18px; font-weight:600; color:var(--gray-900); margin-bottom:6px;
+  }
+  .choice-block p {
+    font-size:14px; color:var(--gray-500); line-height:20px;
+  }
+
+  /* Form inputs */
+  .form-label {
+    font-size:13px; font-weight:600; color:var(--gray-500);
+    text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;
+    margin-top:16px;
+  }
+  .form-input {
+    width:100%; height:48px; border-radius:12px;
+    background:var(--gray-50); border:1.5px solid var(--gray-100);
+    padding:0 16px; font-size:15px; font-family:inherit;
+    color:var(--gray-900); outline:none;
+  }
+  .form-input:focus { border-color:var(--blue-500); }
+  .form-textarea {
+    width:100%; min-height:100px; border-radius:12px;
+    background:var(--gray-50); border:1.5px solid var(--gray-100);
+    padding:12px 16px; font-size:15px; font-family:inherit;
+    color:var(--gray-900); outline:none; resize:none; line-height:20px;
+  }
+  .form-textarea:focus { border-color:var(--blue-500); }
+
+  /* Glossary picker chips */
+  .glossary-picker {
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .gloss-chip {
+    padding:10px 14px; border-radius:20px;
+    background:var(--white); border:1.5px solid var(--gray-200);
+    font-size:13px; font-weight:500; color:var(--gray-900);
+    cursor:pointer; transition:all .2s; font-family:inherit;
+    display:flex; align-items:center; gap:6px;
+  }
+  .gloss-chip:active { transform:scale(.96); }
+  .gloss-chip.selected {
+    background:var(--blue-500); border-color:var(--blue-500); color:var(--white);
+  }
+  .gloss-chip.new {
+    border-style:dashed; color:var(--blue-500);
+  }
+  .gloss-chip.new:hover { background:var(--blue-50); }
+
+  /* Base glossary checkboxes */
+  .base-check-row {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; background:var(--gray-50); border-radius:12px;
+    margin-bottom:8px; cursor:pointer; transition:all .2s;
+    border:1.5px solid var(--gray-100);
+  }
+  .base-check-row:hover { border-color:var(--blue-500); }
+  .base-check-row.selected { background:var(--blue-50); border-color:var(--blue-500); }
+  .base-check-box {
+    width:22px; height:22px; border-radius:6px;
+    border:2px solid var(--gray-200); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s;
+  }
+  .base-check-row.selected .base-check-box {
+    background:var(--blue-500); border-color:var(--blue-500);
+  }
+  .base-check-row.selected .base-check-box::after {
+    content:''; width:10px; height:6px;
+    border-left:2px solid white; border-bottom:2px solid white;
+    transform:rotate(-45deg); margin-top:-2px;
+  }
+  .base-check-text { flex:1; }
+  .base-check-title { font-size:15px; font-weight:600; color:var(--gray-900); }
+  .base-check-sub { font-size:13px; color:var(--gray-500); }
+
+  /* Primary button */
+  .primary-btn {
+    width:100%; height:52px; border-radius:14px;
+    background:var(--blue-500); color:var(--white);
+    font-size:16px; font-weight:600; border:none; cursor:pointer;
+    font-family:inherit; margin-top:20px; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .primary-btn:active { background:var(--blue-600); transform:scale(.98); }
+  .primary-btn svg { width:18px; height:18px; }
+
   /* AI Prep screen */
   .hero-card {
     background: linear-gradient(135deg, var(--blue-50), var(--blue-100));
@@ -353,13 +470,13 @@
       </div>
       <div class="section-header">Quick Access</div>
       <div class="grid-cards" style="grid-template-columns:repeat(2,1fr);">
-        <div class="grid-card">
+        <div class="grid-card" onclick="showSubScreen('add-term')">
           <div class="grid-card-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <span class="grid-card-label">Add a Term</span>
         </div>
-        <div class="grid-card">
+        <div class="grid-card" onclick="showSubScreen('create-choice')">
           <div class="grid-card-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           </div>
@@ -411,6 +528,143 @@
         <span class="list-meta">1 week ago</span>
         <span class="list-chevron">›</span>
       </div>
+    </div>
+
+    <!-- SUB-SCREEN: Create Glossary Choice -->
+    <div id="screen-create-choice" class="screen">
+      <div class="sub-nav">
+        <button onclick="showSubScreen('glossary')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+      <div class="screen-title" style="font-size:26px;line-height:32px;">How would you like to create your glossary?</div>
+      <div class="choice-grid">
+        <div class="choice-block ai" onclick="showSubScreen('create-ai')">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
+          </div>
+          <h3>AI Generate Glossary</h3>
+          <p>Describe your assignment and let AI build a terminology set. Optionally blend with your existing glossaries as a base.</p>
+        </div>
+        <div class="choice-block custom" onclick="showSubScreen('create-custom')">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <h3>Create Custom Glossary</h3>
+          <p>Start from scratch. Name your glossary, pick a language pair, and add terms one by one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-SCREEN: AI Generate -->
+    <div id="screen-create-ai" class="screen">
+      <div class="sub-nav">
+        <button onclick="showSubScreen('create-choice')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+      <div class="screen-title" style="font-size:26px;line-height:32px;">AI Generate ✨</div>
+      <div style="font-size:15px;color:var(--gray-500);margin-bottom:4px;">Describe your assignment and AI will generate a terminology set.</div>
+
+      <div class="form-label">Glossary Name</div>
+      <input class="form-input" placeholder="e.g., Orthopedic Follow-Up">
+
+      <div class="form-label">Describe the assignment</div>
+      <textarea class="form-textarea" placeholder="e.g., Post-op knee replacement check-up. Will discuss recovery, physical therapy, and medications..."></textarea>
+
+      <div class="form-label">Base on existing glossaries (optional)</div>
+      <div class="base-check-row" onclick="this.classList.toggle('selected')">
+        <div class="base-check-box"></div>
+        <div class="base-check-text">
+          <div class="base-check-title">Medical — Orthopedic</div>
+          <div class="base-check-sub">42 terms</div>
+        </div>
+      </div>
+      <div class="base-check-row" onclick="this.classList.toggle('selected')">
+        <div class="base-check-box"></div>
+        <div class="base-check-text">
+          <div class="base-check-title">Legal — Court Proceedings</div>
+          <div class="base-check-sub">28 terms</div>
+        </div>
+      </div>
+      <div class="base-check-row" onclick="this.classList.toggle('selected')">
+        <div class="base-check-box"></div>
+        <div class="base-check-text">
+          <div class="base-check-title">Education — IEP Meeting</div>
+          <div class="base-check-sub">35 terms</div>
+        </div>
+      </div>
+
+      <button class="primary-btn" onclick="showSubScreen('glossary')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
+        Generate Glossary
+      </button>
+    </div>
+
+    <!-- SUB-SCREEN: Custom Create -->
+    <div id="screen-create-custom" class="screen">
+      <div class="sub-nav">
+        <button onclick="showSubScreen('create-choice')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+      <div class="screen-title" style="font-size:26px;line-height:32px;">Create Custom Glossary</div>
+      <div style="font-size:15px;color:var(--gray-500);margin-bottom:4px;">Set up your new glossary. You can add terms after.</div>
+
+      <div class="form-label">Glossary Name</div>
+      <input class="form-input" placeholder="e.g., My Medical Terms">
+
+      <div class="form-label">Category</div>
+      <input class="form-input" placeholder="e.g., Medical, Legal, Education...">
+
+      <div class="form-label">Source Language</div>
+      <input class="form-input" value="English">
+
+      <div class="form-label">Target Language</div>
+      <input class="form-input" value="Spanish">
+
+      <button class="primary-btn" onclick="showSubScreen('glossary')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Glossary
+      </button>
+    </div>
+
+    <!-- SUB-SCREEN: Add a Term -->
+    <div id="screen-add-term" class="screen">
+      <div class="sub-nav">
+        <button onclick="showSubScreen('glossary')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+      <div class="screen-title" style="font-size:26px;line-height:32px;">Add a Term</div>
+      <div style="font-size:15px;color:var(--gray-500);margin-bottom:4px;">Add a new term to one of your glossaries.</div>
+
+      <div class="form-label">English</div>
+      <input class="form-input" placeholder="e.g., Knee replacement">
+
+      <div class="form-label">Spanish (Target Language)</div>
+      <input class="form-input" placeholder="e.g., Reemplazo de rodilla">
+
+      <div class="form-label">Add to Glossary</div>
+      <div class="glossary-picker">
+        <button class="gloss-chip selected" onclick="selectGlossChip(this)">Medical — Orthopedic</button>
+        <button class="gloss-chip" onclick="selectGlossChip(this)">Legal — Court</button>
+        <button class="gloss-chip" onclick="selectGlossChip(this)">Education — IEP</button>
+        <button class="gloss-chip" onclick="selectGlossChip(this)">Business — Negotiation</button>
+        <button class="gloss-chip new" onclick="showSubScreen('create-custom')">+ New Glossary</button>
+      </div>
+
+      <button class="primary-btn" onclick="showSubScreen('glossary')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Term
+      </button>
+      <button style="width:100%;height:48px;border-radius:14px;background:var(--gray-50);color:var(--gray-900);border:1.5px solid var(--gray-100);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px;" onclick="showSubScreen('add-term')">
+        Save and Add Another
+      </button>
     </div>
 
     <!-- AI PREP SCREEN -->
@@ -579,6 +833,20 @@ function switchTab(name, el) {
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   el.classList.add('active');
+}
+
+function showSubScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  // scroll to top
+  document.querySelector('.screen-content').scrollTop = 0;
+}
+
+function selectGlossChip(el) {
+  el.parentElement.querySelectorAll('.gloss-chip').forEach(c => {
+    if (!c.classList.contains('new')) c.classList.remove('selected');
+  });
+  el.classList.add('selected');
 }
 </script>
 </body>
